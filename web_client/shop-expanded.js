@@ -102,6 +102,17 @@ class TowerShop {
       { id: 'effect_anger_thunder', name: '雷鸣怒吼', description: '激怒时雷霆万钧，威震八方', category: 'effect', price: 288, currency: 'gem', icon: '⛈️', rarity: 'rare', subCategory: 'anger', target: 'anger' },
       { id: 'effect_anger_berserk', name: '狂战士魂', description: '激怒时进入狂暴，战无不胜', category: 'effect', price: 388, currency: 'gem', icon: '⚔️', rarity: 'epic', subCategory: 'anger', target: 'anger' },
 
+      // ========== 3D移动特效 (新增强力系统) ==========
+      // 上升特效
+      { id: 'effect_cloud', name: '筋斗云', description: '乘坐筋斗云上升，仙气飘飘，金色边框环绕', category: 'effect', price: 188, currency: 'gem', icon: '☁️', rarity: 'epic', subCategory: 'rise', target: '3d_movement', preview3d: true, animationType: 'float' },
+      { id: 'effect_rocket', name: '火箭背包', description: '喷射火焰，快速上升，科技感十足的3D特效', category: 'effect', price: 288, currency: 'gem', icon: '🚀', rarity: 'legendary', subCategory: 'rise', target: '3d_movement', preview3d: true, animationType: 'rocket' },
+      // 下降特效
+      { id: 'effect_parachute', name: '神奇降落伞', description: '彩色伞面+绳索，缓慢飘落旋转的3D特效', category: 'effect', price: 128, currency: 'gem', icon: '🪂', rarity: 'rare', subCategory: 'fall', target: '3d_movement', preview3d: true, animationType: 'parachute' },
+      { id: 'effect_feather', name: '天使羽毛', description: '白色羽毛，发光闪烁，轻盈飘落的3D特效', category: 'effect', price: 188, currency: 'gem', icon: '🪶', rarity: 'epic', subCategory: 'fall', target: '3d_movement', preview3d: true, animationType: 'feather' },
+      // 守卫激怒特效
+      { id: 'effect_laser', name: '激光眼', description: '从守卫眼睛射出红色激光，命中爆炸的传说限定3D特效', category: 'effect', price: 388, currency: 'gem', icon: '👁️⚡', rarity: 'legendary', subCategory: 'provoke', target: '3d_guard', preview3d: true, animationType: 'laser', limited: true },
+      { id: 'effect_thunder', name: '雷电链', description: '闪电从守卫劈向玩家，电光闪烁震动的3D特效', category: 'effect', price: 288, currency: 'gem', icon: '⚡', rarity: 'epic', subCategory: 'provoke', target: '3d_guard', preview3d: true, animationType: 'thunder' },
+
       // ========== 卡背类 (20个) ==========
       // 各国国旗卡背 (10个)
       { id: 'cardback_china', name: '五星红旗', description: '中国国旗，红色信仰', category: 'cardback', price: 188, currency: 'coin', icon: '🇨🇳', rarity: 'common', subCategory: 'flag', country: 'china' },
@@ -1501,8 +1512,90 @@ const shopStyles = `
     gap: 15px;
   }
 }
+
+/* 3D特效相关样式 */
+.effect-3d-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(45deg, #a855f7, #fbbf24);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.7em;
+  font-weight: bold;
+  z-index: 2;
+}
+
+.effect-preview-3d {
+  background: linear-gradient(180deg, #1a1a3e 0%, #0d1b2a 100%);
+  border-radius: 12px;
+  padding: 10px;
+  margin: 10px 0;
+}
 </style>
 `;
+
+// ==================== 3D特效系统集成 ====================
+
+/**
+ * 初始化3D特效系统
+ * 在商店初始化后调用
+ */
+function initEffectSystemIntegration() {
+  // 等待特效系统脚本加载
+  const checkAndInit = () => {
+    if (typeof EffectSystemIntegration !== 'undefined') {
+      console.log('🔗 正在集成3D特效系统...');
+      
+      const effectSystem = new EffectSystemIntegration();
+      effectSystem.init({
+        shop: window.towerShop
+      });
+      
+      window.effectSystem = effectSystem;
+      
+      // 扩展购买方法以支持特效自动装备
+      const originalPurchase = window.towerShop.purchase.bind(window.towerShop);
+      window.towerShop.purchase = function(itemId, quantity = 1) {
+        const result = originalPurchase(itemId, quantity);
+        
+        if (result.success && itemId.startsWith('effect_')) {
+          // 购买的是特效道具
+          const effectId = itemId.replace('effect_', '');
+          const item = this.getItem(itemId);
+          
+          // 触发购买特效
+          if (window.effectTriggerManager) {
+            window.effectTriggerManager.triggerPurchaseEffect(
+              { x: 0, y: 0, z: 0 },
+              item.rarity
+            );
+          }
+          
+          // 自动添加到装备背包
+          if (window.effectEquipmentManager) {
+            const acquireResult = window.effectEquipmentManager.acquire(effectId);
+            if (acquireResult.success && acquireResult.autoEquipped) {
+              result.message += `，已自动装备${item.subCategory === 'rise' ? '上升' : item.subCategory === 'fall' ? '下降' : '守卫'}特效！`;
+            }
+          }
+          
+          console.log(`✨ 购买并激活3D特效: ${effectId}`);
+        }
+        
+        return result;
+      };
+      
+      console.log('✅ 3D特效系统集成完成！');
+    } else {
+      // 延迟重试
+      setTimeout(checkAndInit, 500);
+    }
+  };
+  
+  checkAndInit();
+}
 
 // ==================== 初始化函数 ====================
 
@@ -1513,6 +1606,9 @@ function initShop() {
   
   console.log('🏪 命运塔商店已初始化');
   console.log('📊 商品统计:', window.towerShop.getShopStats());
+  
+  // 初始化3D特效系统集成
+  initEffectSystemIntegration();
   
   return window.towerShop;
 }
