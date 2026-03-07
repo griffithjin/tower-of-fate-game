@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Allegro AB测试管理系统</title>
+    <script src="../js/ui-themes.js"></script>
+    <script src="../js/ab-testing.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 头部 */
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .admin-title {
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ffd700, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .admin-subtitle {
+            color: rgba(255,255,255,0.6);
+            margin-top: 5px;
+        }
+        
+        .admin-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: #fff;
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .btn-success {
+            background: linear-gradient(45deg, #00d26a, #00b894);
+            color: #fff;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        
+        /* 概览卡片 */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateY(-3px);
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+        
+        .stat-icon.blue { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .stat-icon.green { background: linear-gradient(135deg, #00d26a, #00b894); }
+        .stat-icon.orange { background: linear-gradient(135deg, #ff9f43, #ff6b6b); }
+        .stat-icon.purple { background: linear-gradient(135deg, #a55eea, #8b5cf6); }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+        }
+        
+        .stat-change {
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        
+        .stat-change.positive { color: #00d26a; }
+        .stat-change.negative { color: #ff6b6b; }
+        
+        /* 主要内容区 */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 24px;
+        }
+        
+        /* 测试结果卡片 */
+        .test-results {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .test-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(0,210,106,0.1);
+            border-radius: 20px;
+            font-size: 12px;
+            color: #00d26a;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #00d26a;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* 主题对比表格 */
+        .theme-comparison {
+            margin-top: 20px;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .comparison-table th {
+            color: rgba(255,255,255,0.6);
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        
+        .theme-info-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .theme-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .theme-name {
+            font-weight: 600;
+        }
+        
+        .theme-id {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .metric-value {
+            font-weight: 600;
+        }
+        
+        .metric-value.highlight {
+            color: #ffd700;
+        }
+        
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+        
+        .trend-up {
+            background: rgba(0,210,106,0.1);
+            color: #00d26a;
+        }
+        
+        .trend-down {
+            background: rgba(255,107,107,0.1);
+            color: #ff6b6b;
+        }
+        
+        /* 推荐卡片 */
+        .recommendation-card {
+            background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,107,107,0.1));
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 24px;
+        }
+        
+        .recommendation-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffd700;
+            margin-bottom: 12px;
+        }
+        
+        .recommendation-text {
+            color: rgba(255,255,255,0.8);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        
+        .recommendation-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        
+        /* 侧边栏 */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .sidebar-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        /* 实时数据 */
+        .live-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .live-metric:last-child {
+            border-bottom: none;
+        }
+        
+        .live-metric-label {
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+        }
+        
+        .live-metric-value {
+            font-weight: 600;
+        }
+        
+        /* 主题排名 */
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .ranking-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .ranking-number.gold {
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            color: #000;
+        }
+        
+        .ranking-number.silver {
+            background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
+            color: #000;
+        }
+        
+        .ranking-number.bronze {
+            background: linear-gradient(135deg, #cd7f32, #b87333);
+            color: #000;
+        }
+        
+        .ranking-number.other {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .ranking-info {
+            flex: 1;
+        }
+        
+        .ranking-name {
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .ranking-score {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .ranking-value {
+            font-weight: 600;
+            color: #ffd700;
+        }
+        
+        /* 导出选项 */
+        .export-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .export-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .export-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        /* 响应式 */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .overview-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .overview-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+        }
+        
+        /* 加载动画 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15,12,41,0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s;
+        }
+        
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,215,0,0.2);
+            border-top-color: #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 20px;
+            color: rgba(255,255,255,0.6);
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载覆盖层 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">正在加载AB测试数据...</div>
+    </div>
+
+    <div class="admin-container">
+        <!-- 头部 -->
+        <header class="admin-header">
+            <div>
+                <h1 class="admin-title">📊 AB测试管理系统</h1>
+                <div class="admin-subtitle">Allegro 最强模式 - 连胜主题界面AB测试</div>
+            </div>
+            <div class="admin-actions">
+                <button class="btn btn-secondary" onclick="refreshData()">🔄 刷新数据</button>
+                <button class="btn btn-primary" onclick="exportReport()">📥 导出报告</button>
+            </div>
+        </header>
+
+        <!-- 数据概览 -->
+        <div class="overview-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">👥</div>
+                <div class="stat-value" id="totalParticipants">15,420</div>
+                <div class="stat-label">总参与用户</div>
+                <div class="stat-change positive">↑ 12.5% 较上周</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon green">🎮</div>
+                <div class="stat-value" id="totalSessions">45,832</div>
+                <div class="stat-label">总游戏场次</div>
+                <div class="stat-change positive">↑ 8.3% 较上周</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon orange">🏆</div>
+                <div class="stat-value" id="avgWinRate">45.2%</div>
+                <div class="stat-label">平均胜率</div>
+                <div class="stat-change positive">↑ 3.1% 较上周</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon purple">⭐</div>
+                <div class="stat-value" id="topTheme">卡牌竞技场</div>
+                <div class="stat-label">表现最佳主题</div>
+                <div class="stat-change positive">胜率 47.8%</div>
+            </div>
+        </div>
+
+        <!-- 主要内容 -->
+        <div class="main-content">
+            <div class="test-results">
+                <div class="section-header">
+                    <h2 class="section-title">主题表现对比</h2>
+                    <div class="test-status">
+                        <span class="status-dot"></span>
+                        <span>测试中 (第7天)</span>
+                    </div>
+                </div>
+
+                <div class="theme-comparison">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>主题</th>
+                                <th>参与用户</th>
+                                <th>胜率</th>
+                                <th>平均时长</th>
+                                <th>满意度</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparisonTableBody">
+                            <!-- 动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="recommendation-card">
+                    <div class="recommendation-title">
+                        🎯 优化建议
+                    </div>
+                    <div class="recommendation-text" id="recommendationText">
+                        根据当前7天的测试数据，"卡牌对决竞技场"界面表现最佳，
+                        建议将其设为默认主题，并继续优化3D卡牌动画效果。
+                        同时，"3D攀登塔楼"主题的加载时间较长，建议进行性能优化。
+                    </div>
+                    
+                    <div class="recommendation-actions">
+                        <button class="btn btn-success" onclick="applyRecommendation()">应用建议</button>
+                        <button class="btn btn-secondary" onclick="viewDetails()">查看详情</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="sidebar-card">
+                    <div class="sidebar-title">📈 实时数据</div>
+                    
+                    <div class="live-metric">
+                        <span class="live-metric-label">当前在线</span>
+                        <span class="live-metric-value" id="liveOnline">1,234</span>
+                    </div>
+                    
+                    <div class="live-metric">
+                        <span class="live-metric-label">今日场次</span>
+                        <span class="live-metric-value" id="todayGames">3,456</span>
+                    </div>
+                    
+                    <div class="live-metric">
+                        <span class="live-metric-label">平均连胜</span>
+                        <span class="live-metric-value" id="avgStreak">5.2</span>
+                    </div>
+                    
+                    <div class="live-metric">
+                        <span class="live-metric-label">转化率</span>
+                        <span class="live-metric-value" id="conversionRate">3.8%</span>
+                    </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <div class="sidebar-title">🏅 主题排名</div>
+                    
+                    <div id="themeRanking">
+                        <!-- 动态生成 -->
+                    </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <div class="sidebar-title">📤 导出选项</div>
+                    
+                    <div class="export-options">
+                        <button class="export-btn" onclick="exportCSV()">
+                            📄 导出CSV
+                        </button>
+                        
+                        <button class="export-btn" onclick="exportJSON()">
+                            📋 导出JSON
+                        </button>
+                        
+                        <button class="export-btn" onclick="exportPDF()">
+                            📑 导出PDF报告
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟测试数据
+        const mockTestData = {
+            totalParticipants: 15420,
+            totalSessions: 45832,
+            testDuration: 7,
+            variants: [
+                {
+                    id: 'classic',
+                    name: '经典版',
+                    icon: '🎴',
+                    users: 3084,
+                    sessions: 8560,
+                    winRate: 42.5,
+                    avgDuration: '12m 30s',
+                    satisfaction: 4.2,
+                    loadTime: 0.8,
+                    shareRate: 5.2,
+                    purchaseRate: 3.1
+                },
+                {
+                    id: '3d-tower',
+                    name: '3D攀登塔楼',
+                    icon: '🗼',
+                    users: 3084,
+                    sessions: 8230,
+                    winRate: 45.2,
+                    avgDuration: '14m 15s',
+                    satisfaction: 4.5,
+                    loadTime: 2.5,
+                    shareRate: 7.8,
+                    purchaseRate: 3.8,
+                    trend: 'up'
+                },
+                {
+                    id: 'card-arena',
+                    name: '卡牌对决竞技场',
+                    icon: '⚔️',
+                    users: 3084,
+                    sessions: 9450,
+                    winRate: 47.8,
+                    avgDuration: '15m 20s',
+                    satisfaction: 4.7,
+                    loadTime: 1.2,
+                    shareRate: 9.5,
+                    purchaseRate: 4.5,
+                    trend: 'up',
+                    isWinner: true
+                },
+                {
+                    id: 'tournament-hall',
+                    name: '锦标赛大厅',
+                    icon: '🏆',
+                    users: 3084,
+                    sessions: 9120,
+                    winRate: 44.5,
+                    avgDuration: '13m 45s',
+                    satisfaction: 4.4,
+                    loadTime: 1.5,
+                    shareRate: 8.2,
+                    purchaseRate: 4.0
+                },
+                {
+                    id: '3d-museum',
+                    name: '3D收藏馆',
+                    icon: '🏛️',
+                    users: 1542,
+                    sessions: 5120,
+                    winRate: 43.8,
+                    avgDuration: '13m 10s',
+                    satisfaction: 4.3,
+                    loadTime: 2.0,
+                    shareRate: 6.5,
+                    purchaseRate: 3.5
+                },
+                {
+                    id: 'command-room',
+                    name: '指挥室',
+                    icon: '🎖️',
+                    users: 1542,
+                    sessions: 5350,
+                    winRate: 41.2,
+                    avgDuration: '11m 50s',
+                    satisfaction: 4.0,
+                    loadTime: 1.0,
+                    shareRate: 4.8,
+                    purchaseRate: 2.8
+                }
+            ]
+        };
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                renderComparisonTable();
+                renderThemeRanking();
+                startLiveUpdates();
+            }, 1500);
+        });
+
+        // 渲染对比表格
+        function renderComparisonTable() {
+            const tbody = document.getElementById('comparisonTableBody');
+            
+            tbody.innerHTML = mockTestData.variants.map(variant => `
+                <tr>
+                    <td>
+                        <div class="theme-info-cell">
+                            <div class="theme-avatar" style="background: ${getThemeColor(variant.id)}">
+                                ${variant.icon}
+                            </div>
+                            <div>
+                                <div class="theme-name">${variant.name}</div>
+                                <div class="theme-id">${variant.id}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="metric-value">
+                        ${variant.users.toLocaleString()}
+                        <div style="font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 4px;">
+                            ${variant.sessions.toLocaleString()} 场
+                        </div>
+                    </td>
+                    
+                    <td class="metric-value ${variant.isWinner ? 'highlight' : ''}">
+                        ${variant.winRate}%
+                        ${variant.trend === 'up' ? '<span class="trend-indicator trend-up">↑</span>' : ''}
+                    </td>
+                    
+                    <td class="metric-value">${variant.avgDuration}</td>
+                    
+                    <td class="metric-value">
+                        ⭐ ${variant.satisfaction}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 渲染主题排名
+        function renderThemeRanking() {
+            const container = document.getElementById('themeRanking');
+            
+            // 按胜率排序
+            const sorted = [...mockTestData.variants].sort((a, b) => b.winRate - a.winRate);
+            
+            container.innerHTML = sorted.slice(0, 5).map((variant, index) => {
+                const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : 'other';
+                return `
+                    <div class="ranking-item">
+                        <div class="ranking-number ${rankClass}">${index + 1}</div>
+                        <div class="ranking-info">
+                            <div class="ranking-name">${variant.icon} ${variant.name}</div>
+                            <div class="ranking-score">${variant.users.toLocaleString()} 用户 · ${variant.sessions.toLocaleString()} 场</div>
+                        </div>
+                        <div class="ranking-value">${variant.winRate}%</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 获取主题颜色
+        function getThemeColor(themeId) {
+            const colors = {
+                'classic': 'linear-gradient(135deg, #667eea, #764ba2)',
+                '3d-tower': 'linear-gradient(135deg, #00d4ff, #7b2cbf)',
+                'card-arena': 'linear-gradient(135deg, #ff6b35, #f7931e)',
+                'tournament-hall': 'linear-gradient(135deg, #00ff88, #00ccff)',
+                '3d-museum': 'linear-gradient(135deg, #e0c097, #c9b037)',
+                'command-room': 'linear-gradient(135deg, #ff3333, #00ff00)'
+            };
+            return colors[themeId] || colors['classic'];
+        }
+
+        // 实时数据更新
+        function startLiveUpdates() {
+            setInterval(() => {
+                // 更新在线人数
+                const onlineEl = document.getElementById('liveOnline');
+                if (onlineEl) {
+                    const base = 1234;
+                    const variation = Math.floor(Math.random() * 50) - 25;
+                    onlineEl.textContent = (base + variation).toLocaleString();
+                }
+                
+                // 更新今日场次
+                const gamesEl = document.getElementById('todayGames');
+                if (gamesEl) {
+                    const current = parseInt(gamesEl.textContent.replace(/,/g, ''));
+                    gamesEl.textContent = (current + Math.floor(Math.random() * 5)).toLocaleString();
+                }
+            }, 3000);
+        }
+
+        // 刷新数据
+        function refreshData() {
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                renderComparisonTable();
+                renderThemeRanking();
+            }, 1000);
+        }
+
+        // 导出报告
+        function exportReport() {
+            alert('正在生成完整AB测试报告...\n\n报告将包含:\n- 所有主题详细对比\n- 用户行为分析\n- 统计显著性检验\n- 优化建议');
+        }
+
+        // 应用建议
+        function applyRecommendation() {
+            if (confirm('确定要将"卡牌对决竞技场"设为默认主题吗？')) {
+                alert('✅ 已应用建议设置!\n\n- 卡牌竞技场设为默认主题\n- 向所有用户推送更新\n- 继续监控其他主题表现');
+            }
+        }
+
+        // 查看详情
+        function viewDetails() {
+            alert('详细分析报告:\n\n1. 卡牌对决竞技场表现最佳\n   - 胜率最高: 47.8%\n   - 用户满意度: 4.7/5\n   - 分享率: 9.5%\n\n2. 3D攀登塔楼需要优化\n   - 加载时间过长: 2.5s\n   - 建议压缩资源\n\n3. 指挥室表现一般\n   - 可能需要重新设计');
+        }
+
+        // 导出CSV
+        function exportCSV() {
+            let csv = '主题,用户,场次,胜率,平均时长,满意度\n';
+            mockTestData.variants.forEach(v => {
+                csv += `${v.name},${v.users},${v.sessions},${v.winRate}%,${v.avgDuration},${v.satisfaction}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'allegro-ab-test-report.csv';
+            a.click();
+        }
+
+        // 导出JSON
+        function exportJSON() {
+            const json = JSON.stringify(mockTestData, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'allegro-ab-test-data.json';
+            a.click();
+        }
+
+        // 导出PDF
+        function exportPDF() {
+            alert('PDF报告生成中...\n\n这将包含:\n- 可视化图表\n- 详细数据分析\n- 执行建议');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Allegro 最强模式 - 连胜挑战</title>
+    <!-- 样式 -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(180deg, #0a0a1a 0%, #1a0a2e 50%, #0d1b2a 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        /* 加载动画 */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+        
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .loading-logo {
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: logo-pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes logo-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .loading-text {
+            font-size: 18px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 30px;
+        }
+        
+        .loading-bar {
+            width: 200px;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .loading-progress {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ffd700, #ff6b6b);
+            border-radius: 2px;
+            animation: loading-anim 2s ease-out forwards;
+        }
+        
+        @keyframes loading-anim {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        
+        /* 主容器 */
+        #allegroStreakContainer {
+            min-height: 100vh;
+        }
+        
+        /* 游戏容器 */
+        #gameContainer {
+            width: 100%;
+            min-height: 100vh;
+        }
+        
+        /* 通知提示 */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .toast {
+            padding: 15px 25px;
+            background: rgba(0,0,0,0.9);
+            border-radius: 10px;
+            border-left: 4px solid #ffd700;
+            color: #fff;
+            animation: toast-in 0.3s ease;
+            max-width: 300px;
+        }
+        
+        @keyframes toast-in {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .loading-logo {
+                font-size: 40px;
+            }
+            
+            .loading-text {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载屏幕 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">🔥</div>
+        <div class="loading-text">正在加载 Allegro 最强模式...</div>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+    </div>
+    
+    <!-- Toast 容器 -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- 游戏主容器 -->
+    <div id="allegroStreakContainer"></div>
+
+    <!-- 脚本加载 -->
+    <!-- 1. 主题配置 -->
+    <script src="js/ui-themes.js"></script>
+    
+    <!-- 2. AB测试系统 -->
+    <script src="js/ab-testing.js"></script>
+    
+    <!-- 3. UI组件 -->
+    <script src="js/ui-theme-components.js"></script>
+    
+    <!-- 4. 增强版连胜模式 -->
+    <script src="js/streak-mode-enhanced.js"></script>
+    
+    <script>
+        // 初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🎮 Allegro 最强模式 - 连胜挑战');
+            console.log('📊 AB测试系统已集成');
+            console.log('🎨 5个创新主题已就绪');
+            
+            try {
+                // 等待所有脚本加载
+                await waitForDependencies();
+                
+                // 隐藏加载屏幕
+                setTimeout(() => {
+                    document.getElementById('loadingScreen').classList.add('hidden');
+                }, 1500);
+                
+                // 初始化增强版连胜模式
+                if (window.enhancedStreakMode) {
+                    await window.enhancedStreakMode.init();
+                    
+                    // 显示欢迎提示
+                    showToast('🎉 欢迎来到 Allegro 最强模式！选择你喜欢的主题开始挑战！', 'success');
+                } else {
+                    console.error('[StreakEnhanced] enhancedStreakMode 未加载');
+                    showToast('❌ 游戏加载失败，请刷新重试', 'error');
+                }
+            } catch (error) {
+                console.error('[StreakEnhanced] 初始化失败:', error);
+                showToast('❌ 初始化失败: ' + error.message, 'error');
+            }
+        });
+        
+        // 等待依赖加载
+        function waitForDependencies() {
+            return new Promise((resolve) => {
+                const check = () => {
+                    if (window.UI_THEMES && window.ABTestSystem && 
+                        window.ClassicGameUI && window.enhancedStreakMode) {
+                        resolve();
+                    } else {
+                        setTimeout(check, 100);
+                    }
+                };
+                check();
+            });
+        }
+        
+        // Toast 提示
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            
+            const colors = {
+                success: '#00d26a',
+                error: '#ff6b6b',
+                warning: '#ff9f43',
+                info: '#ffd700'
+            };
+            
+            toast.style.borderLeftColor = colors[type] || colors.info;
+            toast.textContent = message;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'toast-in 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
+        // 全局错误处理
+        window.addEventListener('error', (e) => {
+            console.error('[StreakEnhanced] 全局错误:', e.error);
+            showToast('⚠️ 发生错误: ' + e.message, 'error');
+        });
+        
+        // 未处理的Promise错误
+        window.addEventListener('unhandledrejection', (e) => {
+            console.error('[StreakEnhanced] 未处理的Promise:', e.reason);
+            showToast('⚠️ 发生错误: ' + e.reason, 'error');
+        });
+    </script>
+</body>
+</html>
