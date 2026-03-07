@@ -685,6 +685,7 @@
             <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
                 <button class="btn btn-secondary" id="btnShop">🛍️ 商城</button>
                 <button class="btn btn-secondary" id="btnTournament">🏆 锦标赛</button>
+                <button class="btn btn-secondary" id="btnStreak">🔥 连胜赛</button>
                 <button class="btn btn-secondary" id="btnTeamBattle">👥 团队战</button>
                 <button class="btn btn-secondary" id="btnUserCenter">👤 用户中心</button>
             </div>
@@ -997,6 +998,8 @@
             document.getElementById('btnQuickMatchTeam').addEventListener('click', () => alert('团队匹配开发中'));
             document.getElementById('btnCreateRoom').addEventListener('click', createRoom);
             document.getElementById('btnShop').addEventListener('click', showShop);
+            document.getElementById('btnTournament').addEventListener('click', () => window.location.href = 'tournament-enhanced.html');
+            document.getElementById('btnStreak').addEventListener('click', () => window.location.href = 'streak.html');
             document.getElementById('btnUserCenter').addEventListener('click', showUserCenter);
             document.getElementById('btnSendChat').addEventListener('click', sendChat);
             document.getElementById('btnExitGame').addEventListener('click', exitGame);
