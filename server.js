@@ -23,6 +23,7 @@ const adminRoutes = require('./routes/admin');
 
 // 导入 Socket.io 处理器
 const gameSocketHandler = require('./socket/gameHandler');
+const adminSocketHandler = require('./socket/adminHandler');
 
 // 初始化 Express
 const app = express();
@@ -143,6 +144,11 @@ app.use((err, req, res, next) => {
 
 // 初始化 Socket.io
 gameSocketHandler(io);
+const adminSocket = adminSocketHandler(io);
+
+// 将 io 实例挂载到 app，供路由使用
+app.set('io', io);
+app.set('adminSocket', adminSocket);
 
 // 启动服务器
 const PORT = process.env.PORT || 3000;

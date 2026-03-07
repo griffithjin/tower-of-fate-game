@@ -7,6 +7,12 @@ const { authenticate, requireAdmin } = require('../middleware/auth');
 const alipayService = require('../services/alipayService');
 const wechatService = require('../services/wechatService');
 
+// 导入资产管理路由
+const assetRoutes = require('./assets');
+
+// 使用资产管理路由
+router.use('/', assetRoutes);
+
 // 配置文件路径
 const CONFIG_DIR = path.join(__dirname, '..', 'config', 'payment');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'payment-config.json');
