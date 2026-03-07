@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>命运塔 - 多语言示例</title>
+    <script src="js/i18n-system.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* Language Selector */
+        .language-selector {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 30px;
+        }
+        
+        .current-lang {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .current-lang:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        
+        .lang-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 10px;
+            background: #1a1a2e;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 10px;
+            min-width: 220px;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .lang-menu.active {
+            display: block;
+        }
+        
+        .lang-item {
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+        
+        .lang-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .lang-item.active {
+            background: rgba(243, 156, 18, 0.2);
+        }
+        
+        /* Demo Content */
+        .demo-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #f39c12, #e74c3c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            color: #f39c12;
+            margin-bottom: 15px;
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+        
+        .nav-demo {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        
+        .nav-item {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .nav-item:hover {
+            background: rgba(243, 156, 18, 0.3);
+        }
+        
+        .card-demo {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .card {
+            width: 100px;
+            height: 140px;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #f39c12;
+        }
+        
+        .card-icon {
+            font-size: 2rem;
+        }
+        
+        .card-label {
+            font-size: 0.85rem;
+            color: #ccc;
+        }
+        
+        .btn-demo {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #f39c12, #e74c3c);
+            color: #fff;
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(243, 156, 18, 0.3);
+        }
+        
+        /* RTL Support */
+        [dir="rtl"] .lang-menu {
+            left: auto;
+            right: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Language Selector -->
+        <div class="language-selector">
+            <button class="current-lang" onclick="toggleLangMenu()">
+                🌐 <span id="currentLangLabel">简体中文</span>
+            </button>
+            
+            <div class="lang-menu" id="langMenu">
+                <div class="lang-item active" data-lang="zh-CN" onclick="changeLang('zh-CN')">
+                    <span>🇨🇳</span> 简体中文
+                </div>
+                <div class="lang-item" data-lang="en-US" onclick="changeLang('en-US')">
+                    <span>🇺🇸</span> English
+                </div>
+                <div class="lang-item" data-lang="ja-JP" onclick="changeLang('ja-JP')">
+                    <span>🇯🇵</span> 日本語
+                </div>
+                <div class="lang-item" data-lang="ko-KR" onclick="changeLang('ko-KR')">
+                    <span>🇰🇷</span> 한국어
+                </div>
+                <div class="lang-item" data-lang="de-DE" onclick="changeLang('de-DE')">
+                    <span>🇩🇪</span> Deutsch
+                </div>
+                <div class="lang-item" data-lang="fr-FR" onclick="changeLang('fr-FR')">
+                    <span>🇫🇷</span> Français
+                </div>
+                <div class="lang-item" data-lang="es-ES" onclick="changeLang('es-ES')">
+                    <span>🇪🇸</span> Español
+                </div>
+                <div class="lang-item" data-lang="pt-BR" onclick="changeLang('pt-BR')">
+                    <span>🇧🇷</span> Português
+                </div>
+                <div class="lang-item" data-lang="ru-RU" onclick="changeLang('ru-RU')">
+                    <span>🇷🇺</span> Русский
+                </div>
+                <div class="lang-item" data-lang="ar-SA" onclick="changeLang('ar-SA')">
+                    <span>🇸🇦</span> العربية
+                </div>
+                <div class="lang-item" data-lang="hi-IN" onclick="changeLang('hi-IN')">
+                    <span>🇮🇳</span> हिन्दी
+                </div>
+                <div class="lang-item" data-lang="th-TH" onclick="changeLang('th-TH')">
+                    <span>🇹🇭</span> ไทย
+                </div>
+                <div class="lang-item" data-lang="vi-VN" onclick="changeLang('vi-VN')">
+                    <span>🇻🇳</span> Tiếng Việt
+                </div>
+                <div class="lang-item" data-lang="id-ID" onclick="changeLang('id-ID')">
+                    <span>🇮🇩</span> Bahasa Indonesia
+                </div>
+                <div class="lang-item" data-lang="tr-TR" onclick="changeLang('tr-TR')">
+                    <span>🇹🇷</span> Türkçe
+                </div>
+            </div>
+        </div>
+        
+        <!-- Demo Content -->
+        <div class="demo-section">
+            <h1 data-i18n="game.title">命运塔·首登者</h1>
+            <p class="subtitle" data-i18n="game.subtitle">征服13层，成为首登者</p>
+            
+            <div class="nav-demo">
+                <div class="nav-item" data-i18n="nav.home">首页</div>
+                <div class="nav-item" data-i18n="nav.play">开始游戏</div>
+                <div class="nav-item" data-i18n="nav.tournament">锦标赛</div>
+                <div class="nav-item" data-i18n="nav.shop">商城</div>
+                <div class="nav-item" data-i18n="nav.profile">个人中心</div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🎮 <span data-i18n="game.play">出牌</span></h2>
+            
+            <div class="card-demo">
+                <div class="card">
+                    <span class="card-icon">⚔️</span>
+                    <span class="card-label" data-i18n="card.sword">剑</span>
+                </div>
+                <div class="card">
+                    <span class="card-icon">🛡️</span>
+                    <span class="card-label" data-i18n="card.shield">盾</span>
+                </div>
+                <div class="card">
+                    <span class="card-icon">🧪</span>
+                    <span class="card-label" data-i18n="card.potion">药水</span>
+                </div>
+                <div class="card">
+                    <span class="card-icon">📜</span>
+                    <span class="card-label" data-i18n="card.scroll">卷轴</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🎯 <span data-i18n="tournament.title">锦标赛</span></h2>
+            
+            <div class="btn-demo">
+                <button class="btn btn-primary" data-i18n="tournament.register">报名</button>
+                <button class="btn btn-secondary" data-i18n="game.pass">跳过</button>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>📊 参数化翻译示例</h2>
+            
+            <p id="paramDemo"></p>
+        </div>
+    </div>
+    
+    <script>
+        // 切换语言菜单
+        function toggleLangMenu() {
+            document.getElementById('langMenu').classList.toggle('active');
+        }
+        
+        // 改变语言
+        async function changeLang(lang) {
+            await i18n.setLocale(lang);
+            
+            // 更新当前语言标签
+            const langNames = {
+                'zh-CN': '简体中文',
+                'en-US': 'English',
+                'ja-JP': '日本語',
+                'ko-KR': '한국어',
+                'de-DE': 'Deutsch',
+                'fr-FR': 'Français',
+                'es-ES': 'Español',
+                'pt-BR': 'Português',
+                'ru-RU': 'Русский',
+                'ar-SA': 'العربية',
+                'hi-IN': 'हिन्दी',
+                'th-TH': 'ไทย',
+                'vi-VN': 'Tiếng Việt',
+                'id-ID': 'Bahasa Indonesia',
+                'tr-TR': 'Türkçe'
+            };
+            document.getElementById('currentLangLabel').textContent = langNames[lang];
+            
+            // 更新激活状态
+            document.querySelectorAll('.lang-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.lang === lang) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // 关闭菜单
+            document.getElementById('langMenu').classList.remove('active');
+            
+            // 更新参数化示例
+            updateParamDemo();
+        }
+        
+        // 更新参数化翻译示例
+        function updateParamDemo() {
+            const demo = document.getElementById('paramDemo');
+            demo.innerHTML = `
+                <div>${i18n.t('game.rise', { layers: 3 })}</div>
+                <div>${i18n.t('game.floor', { floor: 7 })}</div>
+                <div>${i18n.t('tournament.prize.champion', { amount: 1000 })}</div>
+                <div>${i18n.t('shop.discount', { percent: 50 })}</div>
+            `;
+        }
+        
+        // 点击外部关闭菜单
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.language-selector')) {
+                document.getElementById('langMenu').classList.remove('active');
+            }
+        });
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            updateParamDemo();
+        });
+    </script>
+</body>
+</html>
