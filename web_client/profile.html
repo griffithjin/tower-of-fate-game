@@ -96,7 +96,13 @@
         .player-name {
             font-size: 24px;
             color: #ffd700;
+            margin-bottom: 5px;
+        }
+        
+        .player-title-display {
+            font-size: 14px;
             margin-bottom: 10px;
+            min-height: 20px;
         }
         
         .player-id {
@@ -185,8 +191,307 @@
             margin: 30px 0 20px;
             padding-bottom: 10px;
             border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
+        .share-section-btn {
+            padding: 8px 16px;
+            background: linear-gradient(45deg, #ffd700, #ff6b6b);
+            border: none;
+            border-radius: 20px;
+            color: #000;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .share-section-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* 明信片收藏册样式 */
+        .collection-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .collection-stats {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .region-stat {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .region-name {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+
+        .region-progress {
+            font-size: 18px;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .postcard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+        }
+
+        .postcard-item {
+            aspect-ratio: 3/4;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .postcard-item.collected {
+            border-color: rgba(255, 215, 0, 0.5);
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .postcard-item.collected:hover {
+            transform: translateY(-5px) rotateY(10deg);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .postcard-item.locked {
+            opacity: 0.5;
+            background: rgba(100, 100, 100, 0.2);
+        }
+
+        .postcard-item.new::after {
+            content: 'NEW';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ff5722;
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+
+        .postcard-preview {
+            height: 60%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .postcard-info-mini {
+            height: 40%;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .postcard-country {
+            font-size: 12px;
+            color: #ffd700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .postcard-tower {
+            font-size: 10px;
+            color: #888;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* 荣誉墙样式 */
+        .honor-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .honor-summary {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .honor-progress-ring {
+            width: 100px;
+            height: 100px;
+            position: relative;
+        }
+
+        .honor-progress-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .honor-progress-ring .progress-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 3;
+        }
+
+        .honor-progress-ring .progress-fill {
+            fill: none;
+            stroke: #ffd700;
+            stroke-width: 3;
+            stroke-linecap: round;
+            transition: stroke-dasharray 0.5s ease;
+        }
+
+        .honor-progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .honor-categories {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .honor-cat {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .honor-cat-count {
+            font-size: 16px;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .titles-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .title-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .title-item.unlocked {
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+
+        .title-item.equipped {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .title-icon {
+            font-size: 30px;
+        }
+
+        .title-info {
+            flex: 1;
+        }
+
+        .title-name {
+            font-size: 14px;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .title-desc {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .title-equip-btn {
+            padding: 5px 12px;
+            background: rgba(255, 215, 0, 0.2);
+            border: 1px solid #ffd700;
+            border-radius: 15px;
+            color: #ffd700;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .title-equip-btn:hover {
+            background: rgba(255, 215, 0, 0.4);
+        }
+
+        .title-equip-btn.equipped {
+            background: #ffd700;
+            color: #000;
+        }
+
+        /* 统计区域 */
+        .stats-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-box-value {
+            font-size: 28px;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .stat-box-label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* 背包和商城 */
         .inventory-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -331,6 +636,48 @@
             cursor: not-allowed;
             transform: none;
         }
+
+        /* 动画 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeOutDown {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .profile-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .collection-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .honor-categories {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
     </style>
 </head>
 <body>
@@ -362,6 +709,7 @@
                     😀
                 </div>
                 <div class="player-name" id="playerName">玩家名称</div>
+                <div class="player-title-display" id="playerTitle"></div>
                 <div class="player-id" id="playerId">ID: #00001</div>
                 <div class="vip-badge">VIP 1</div>
                 
@@ -379,7 +727,7 @@
                 </div>
             </div>
             
-            <div class="stats-section">
+            <div class="stats-section" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
                 <div class="stat-card">
                     <div class="stat-icon">🎮</div>
                     <div class="stat-value" id="gamesPlayed">0</div>
@@ -412,6 +760,117 @@
                 </div>
             </div>
         </div>
+
+        <!-- 📮 明信片收藏册 -->
+        <div class="collection-section">
+            <div class="section-title">
+                <span>📮 明信片收藏册 (<span id="postcardCount">0/196</span>)</span>
+                <button class="share-section-btn" onclick="sharePostcards()">📤 分享</button>
+            </div>
+            
+            <div class="collection-stats" id="regionStats">
+                <div class="region-stat">
+                    <div class="region-name">亚洲</div>
+                    <div class="region-progress" id="asiaProgress">0/49</div>
+                </div>
+                <div class="region-stat">
+                    <div class="region-name">欧洲</div>
+                    <div class="region-progress" id="europeProgress">0/44</div>
+                </div>
+                <div class="region-stat">
+                    <div class="region-name">美洲</div>
+                    <div class="region-progress" id="americasProgress">0/35</div>
+                </div>
+                <div class="region-stat">
+                    <div class="region-name">非洲</div>
+                    <div class="region-progress" id="africaProgress">0/54</div>
+                </div>
+                <div class="region-stat">
+                    <div class="region-name">大洋洲</div>
+                    <div class="region-progress" id="oceaniaProgress">0/14</div>
+                </div>
+            </div>
+            
+            <div class="postcard-grid" id="postcardGrid">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+
+        <!-- 🏆 荣誉墙 -->
+        <div class="honor-section">
+            <div class="section-title">
+                <span>🏆 荣誉墙 (<span id="honorCount">0/24</span>)</span>
+                <button class="share-section-btn" onclick="shareHonor()">📤 分享</button>
+            </div>
+            
+            <div class="honor-summary">
+                <div class="honor-progress-ring">
+                    <svg viewBox="0 0 36 36" width="100" height="100">
+                        <path class="progress-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                        <path class="progress-fill" id="honorProgressFill" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    </svg>
+                    <div class="honor-progress-text" id="honorProgressText">0%</div>
+                </div>
+                
+                <div class="honor-categories" id="honorCategories">
+                    <div class="honor-cat">
+                        <div>📈 等级</div>
+                        <div class="honor-cat-count" id="levelCount">0/4</div>
+                    </div>
+                    <div class="honor-cat">
+                        <div>🏆 冠军</div>
+                        <div class="honor-cat-count" id="championCount">0/6</div>
+                    </div>
+                    <div class="honor-cat">
+                        <div>👥 团队</div>
+                        <div class="honor-cat-count" id="teamCount">0/4</div>
+                    </div>
+                    <div class="honor-cat">
+                        <div>📮 收集</div>
+                        <div class="honor-cat-count" id="collectionCount">0/4</div>
+                    </div>
+                    <div class="honor-cat">
+                        <div>✨ 特殊</div>
+                        <div class="honor-cat-count" id="specialCount">0/6</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="titles-list" id="titlesList">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+
+        <!-- 📊 个人战绩 -->
+        <div class="stats-section">
+            <div class="section-title">📊 个人战绩</div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-box-value" id="statTotalGames">0</div>
+                    <div class="stat-box-label">总对局</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-value" id="statWins">0</div>
+                    <div class="stat-box-label">获胜</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-value" id="statWinRate">0%</div>
+                    <div class="stat-box-label">胜率</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-value" id="statFastest">-</div>
+                    <div class="stat-box-label">最快登顶</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-value" id="statCountries">0</div>
+                    <div class="stat-box-label">收集国家</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-value" id="statMaxStreak">0</div>
+                    <div class="stat-box-label">最高连胜</div>
+                </div>
+            </div>
+        </div>
         
         <!-- 我的背包 -->
         <div class="section-title">🎒 我的背包</div>
@@ -427,6 +886,11 @@
             </div>
         </div>
     </div>
+
+    <!-- 引入系统脚本 -->
+    <script src="js/postcard-system.js"></script>
+    <script src="js/honor-system.js"></script>
+    <script src="js/share-system.js"></script>
     
     <script>
         // 从主页面获取玩家信息
@@ -452,7 +916,7 @@
                 avatar_frame: 'frame_default'
             }
         };
-        
+
         // 商城商品
         const shopItems = [
             { id: 'skin_gold', name: '黄金卡牌', icon: '🟨', type: '皮肤', price: 5000, currency: 'coins' },
@@ -460,6 +924,169 @@
             { id: 'frame_king', name: '王者边框', icon: '👑', type: '头像框', price: 200, currency: 'diamonds' },
             { id: 'frame_star', name: '星辰边框', icon: '⭐', type: '头像框', price: 100, currency: 'diamonds' }
         ];
+
+        // 初始化系统
+        let postcardSystem, honorSystem, shareSystem;
+
+        function initSystems() {
+            // 初始化明信片系统
+            postcardSystem = new PostcardSystem();
+            
+            // 初始化荣誉系统
+            honorSystem = new HonorSystem();
+            
+            // 初始化分享系统
+            shareSystem = new ShareSystem();
+            
+            // 初始化称号显示
+            const titleDisplay = new TitleDisplay('playerTitle', honorSystem);
+            titleDisplay.init();
+            
+            // 渲染收藏和荣誉
+            renderPostcardCollection();
+            renderHonorWall();
+            
+            // 更新战绩统计
+            updateStatsDisplay();
+        }
+
+        // 渲染明信片收藏
+        function renderPostcardCollection() {
+            const stats = postcardSystem.getCollectionStats();
+            const totalCountries = 196;
+            const collected = postcardSystem.getCollectedCount();
+            
+            // 更新统计
+            document.getElementById('postcardCount').textContent = `${collected}/${totalCountries}`;
+            document.getElementById('statCountries').textContent = collected;
+            
+            // 更新大洲进度
+            document.getElementById('asiaProgress').textContent = 
+                `${stats.byRegion.asia?.collected || 0}/${stats.byRegion.asia?.total || 49}`;
+            document.getElementById('europeProgress').textContent = 
+                `${stats.byRegion.europe?.collected || 0}/${stats.byRegion.europe?.total || 44}`;
+            document.getElementById('americasProgress').textContent = 
+                `${stats.byRegion.americas?.collected || 0}/${stats.byRegion.americas?.total || 35}`;
+            document.getElementById('africaProgress').textContent = 
+                `${stats.byRegion.africa?.collected || 0}/${stats.byRegion.africa?.total || 54}`;
+            document.getElementById('oceaniaProgress').textContent = 
+                `${stats.byRegion.oceania?.collected || 0}/${stats.byRegion.oceania?.total || 14}`;
+            
+            // 渲染明信片网格（只显示部分）
+            const grid = document.getElementById('postcardGrid');
+            const postcards = postcardSystem.getAllPostcards().filter(p => p.region).slice(0, 20);
+            
+            grid.innerHTML = postcards.map(p => {
+                const isCollected = p.isCollected;
+                return `
+                    <div class="postcard-item ${isCollected ? 'collected' : 'locked'} ${p.userData?.isNew ? 'new' : ''}"
+                         onclick="showPostcardDetail('${p.code}')">
+                        <div class="postcard-preview">
+                            ${isCollected ? getTowerEmoji(p.code) : '❓'}
+                        </div>
+                        <div class="postcard-info-mini">
+                            <div class="postcard-country">${isCollected ? p.country : '???'}</div>
+                            <div class="postcard-tower">${isCollected ? p.tower : '未解锁'}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 渲染荣誉墙
+        function renderHonorWall() {
+            const stats = honorSystem.getStatsSummary();
+            
+            // 更新统计
+            document.getElementById('honorCount').textContent = `${stats.unlocked}/${stats.total}`;
+            document.getElementById('honorProgressText').textContent = `${stats.percentage}%`;
+            document.getElementById('honorProgressFill').setAttribute('stroke-dasharray', `${stats.percentage}, 100`);
+            
+            // 更新分类统计
+            stats.byCategory.forEach(cat => {
+                const countEl = document.getElementById(`${cat.category}Count`);
+                if (countEl) {
+                    countEl.textContent = `${cat.unlocked}/${cat.total}`;
+                }
+            });
+            
+            // 渲染称号列表
+            const list = document.getElementById('titlesList');
+            const titles = honorSystem.getAllTitles();
+            
+            list.innerHTML = titles.map(t => `
+                <div class="title-item ${t.isUnlocked ? 'unlocked' : ''} ${t.isEquipped ? 'equipped' : ''} ${t.userData?.isNew ? 'new' : ''}"
+                     onclick="markTitleViewed('${t.code}')">
+                    <div class="title-icon">${t.icon}</div>
+                    <div class="title-info">
+                        <div class="title-name">${t.name}</div>
+                        <div class="title-desc">${t.isUnlocked ? '✓ ' + t.condition : '🔒 ' + t.condition}</div>
+                    </div>
+                    ${t.isUnlocked ? `
+                        <button class="title-equip-btn ${t.isEquipped ? 'equipped' : ''}" 
+                                onclick="toggleEquipTitle('${t.code}', event)">
+                            ${t.isEquipped ? '已装备' : '装备'}
+                        </button>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // 更新战绩统计
+        function updateStatsDisplay() {
+            document.getElementById('statTotalGames').textContent = playerData.gamesPlayed;
+            document.getElementById('statWins').textContent = playerData.gamesWon;
+            document.getElementById('statWinRate').textContent = 
+                Math.round((playerData.gamesWon / Math.max(playerData.gamesPlayed, 1)) * 100) + '%';
+            document.getElementById('statMaxStreak').textContent = playerData.streak;
+        }
+
+        // 装备/卸下称号
+        function toggleEquipTitle(code, event) {
+            event.stopPropagation();
+            if (honorSystem.equippedTitle === code) {
+                honorSystem.unequipTitle();
+            } else {
+                honorSystem.equipTitle(code);
+                honorSystem.markAsViewed(code);
+            }
+            renderHonorWall();
+        }
+
+        // 标记称号已查看
+        function markTitleViewed(code) {
+            honorSystem.markAsViewed(code);
+        }
+
+        // 显示明信片详情
+        function showPostcardDetail(code) {
+            const postcard = POSTCARD_DATA[code];
+            if (!postcard || !postcardSystem.userPostcards[code]) return;
+            
+            postcardSystem.markAsViewed(code);
+            renderPostcardCollection();
+            
+            // 显示详情弹窗
+            alert(`${postcard.country} - ${postcard.tower}\n稀有度: ${RARITY_CONFIG[postcard.rarity]?.name || '普通'}`);
+        }
+
+        // 分享功能
+        function sharePostcards() {
+            shareSystem.shareHonorWall();
+        }
+
+        function shareHonor() {
+            shareSystem.shareHonorWall();
+        }
+
+        // 获取塔emoji
+        function getTowerEmoji(countryCode) {
+            const towerEmojis = {
+                'CN': '🗼', 'JP': '🗼', 'FR': '🗼', 'US': '🗽', 'EG': '🔺',
+                'GB': '🕐', 'IT': '📐', 'DE': '📡', 'RU': '🏰', 'IN': '🕌'
+            };
+            return towerEmojis[countryCode] || '🏛️';
+        }
         
         // 更新显示
         function updateDisplay() {
@@ -565,13 +1192,16 @@
         
         // 返回游戏
         function goBack() {
-            window.location.href = 'http://localhost:8080';
+            window.location.href = 'index.html';
         }
         
         // 初始化
         updateDisplay();
         renderInventory();
         renderShop();
+        
+        // 初始化新系统
+        document.addEventListener('DOMContentLoaded', initSystems);
     </script>
 </body>
 </html>
