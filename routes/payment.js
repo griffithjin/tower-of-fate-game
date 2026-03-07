@@ -1,39 +1,168 @@
+/**
+ * 支付路由 - Payment Routes
+ * 集成支付宝和微信支付SDK
+ */
+
 const express = require('express');
 const router = express.Router();
-const crypto = require('crypto');
+const paymentService = require('../services/paymentService');
+const alipayService = require('../services/alipayService');
+const wechatService = require('../services/wechatService');
 const { authenticate } = require('../middleware/auth');
 const { validateCreateOrder } = require('../middleware/validator');
 const Order = require('../models/Order');
 const User = require('../models/User');
 const ShopItem = require('../models/ShopItem');
 
-// 模拟支付宝/微信支付配置
-// 生产环境应从环境变量读取
-const PAYMENT_CONFIG = {
-  alipay: {
-    appId: process.env.ALIPAY_APP_ID,
-    gateway: process.env.ALIPAY_GATEWAY || 'https://openapi.alipay.com/gateway.do',
-    notifyUrl: `${process.env.API_BASE_URL || 'http://localhost:3000'}/api/payment/alipay-callback`,
-    returnUrl: `${process.env.CLIENT_URL || 'http://localhost:8080'}/payment/success`
-  },
-  wechat: {
-    appId: process.env.WECHAT_APP_ID,
-    mchId: process.env.WECHAT_MCH_ID,
-    notifyUrl: `${process.env.API_BASE_URL || 'http://localhost:3000'}/api/payment/wechat-callback`
-  }
-};
+// ==================== 支付创建 ====================
 
 // @route   POST /api/payment/create
 // @desc    创建支付订单
 // @access  Private
 router.post('/create', authenticate, validateCreateOrder, async (req, res) => {
   try {
-    const { itemId, paymentMethod, quantity = 1 } = req.body;
+    const { 
+      itemId, 
+      paymentMethod, 
+      quantity = 1, 
+      platform = 'app',
+      openId = null 
+    } = req.body;
+
+    const result = await paymentService.createPayment({
+      userId: req.userId,
+      itemId,
+      paymentMethod,
+      quantity,
+      platform,
+      openId,
+      clientIp: req.ip
+    });
+
+    res.json({
+      success: true,
+      message: '订单创建成功',
+      data: result
+    });
+  } catch (error) {
+    console.error('创建支付订单错误:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message || '创建订单失败'
+    });
+  }
+});
+
+// @route   POST /api/payment/create-alipay
+// @desc    创建支付宝订单（快捷接口）
+// @access  Private
+router.post('/create-alipay', authenticate, async (req, res) => {
+  try {
+    const { itemId, quantity = 1, platform = 'app' } = req.body;
+
+    const result = await paymentService.createPayment({
+      userId: req.userId,
+      itemId,
+      paymentMethod: 'alipay',
+      quantity,
+      platform
+    });
+
+    res.json({
+      success: true,
+      message: '支付宝订单创建成功',
+      data: result
+    });
+  } catch (error) {
+    console.error('创建支付宝订单错误:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message || '创建订单失败'
+    });
+  }
+});
+
+// @route   POST /api/payment/create-wechat
+// @desc    创建微信支付订单（快捷接口）
+// @access  Private
+router.post('/create-wechat', authenticate, async (req, res) => {
+  try {
+    const { itemId, quantity = 1, platform = 'app', openId } = req.body;
+
+    const result = await paymentService.createPayment({
+      userId: req.userId,
+      itemId,
+      paymentMethod: 'wechat',
+      quantity,
+      platform,
+      openId
+    });
+
+    res.json({
+      success: true,
+      message: '微信支付订单创建成功',
+      data: result
+    });
+  } catch (error) {
+    console.error('创建微信支付订单错误:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message || '创建订单失败'
+    });
+  }
+});
+
+// ==================== 支付回调 ====================
+
+// @route   POST /api/payment/alipay-callback
+// @desc    支付宝支付回调
+// @access  Public
+router.post('/alipay-callback', async (req, res) => {
+  try {
+    console.log('📨 收到支付宝回调:', req.body);
+    
+    await paymentService.handleNotify('alipay', req.body);
+    
+    // 支付宝要求返回 success
+    res.send('success');
+  } catch (error) {
+    console.error('支付宝回调处理错误:', error);
+    // 处理失败时返回 fail，支付宝会重试
+    res.send('fail');
+  }
+});
+
+// @route   POST /api/payment/wechat-callback
+// @desc    微信支付回调
+// @access  Public
+router.post('/wechat-callback', express.raw({ type: 'application/xml' }), async (req, res) => {
+  try {
+    const xmlData = req.body.toString();
+    console.log('📨 收到微信支付回调:', xmlData);
+    
+    await paymentService.handleNotify('wechat', xmlData);
+    
+    // 返回微信要求的XML格式
+    res.set('Content-Type', 'application/xml');
+    res.send(wechatService.getSuccessResponse());
+  } catch (error) {
+    console.error('微信支付回调处理错误:', error);
+    res.set('Content-Type', 'application/xml');
+    res.send(wechatService.getFailResponse(error.message));
+  }
+});
+
+// ==================== 虚拟货币支付 ====================
+
+// @route   POST /api/payment/diamond
+// @desc    使用钻石支付
+// @access  Private
+router.post('/diamond', authenticate, async (req, res) => {
+  try {
+    const { itemId, quantity = 1 } = req.body;
     const userId = req.userId;
 
-    // 查找商品
     const item = await ShopItem.findOne({ itemId });
-    
     if (!item || !item.isAvailable) {
       return res.status(404).json({
         success: false,
@@ -41,218 +170,155 @@ router.post('/create', authenticate, validateCreateOrder, async (req, res) => {
       });
     }
 
-    // 检查是否可购买
     const user = await User.findById(userId);
-    const canPurchase = item.canPurchase(user);
-    
-    if (!canPurchase.canBuy) {
+    const totalPrice = item.price.amount * quantity;
+
+    if (user.diamond < totalPrice) {
       return res.status(403).json({
         success: false,
-        message: canPurchase.reason
+        message: '钻石不足',
+        required: totalPrice,
+        current: user.diamond
       });
     }
 
-    // 计算总价
-    const totalAmount = item.price.amount * quantity;
-
-    // 检查支付方式
-    if (!['alipay', 'wechat', 'diamond', 'gold'].includes(paymentMethod)) {
-      return res.status(400).json({
-        success: false,
-        message: '无效的支付方式'
-      });
-    }
-
-    // 虚拟货币支付直接处理
-    if (paymentMethod === 'diamond' || paymentMethod === 'gold') {
-      if (paymentMethod === 'diamond' && user.diamond < totalAmount) {
-        return res.status(403).json({
-          success: false,
-          message: '钻石不足'
-        });
-      }
-      if (paymentMethod === 'gold' && user.gold < totalAmount) {
-        return res.status(403).json({
-          success: false,
-          message: '金币不足'
-        });
-      }
-
-      // 扣除货币
-      if (paymentMethod === 'diamond') {
-        user.diamond -= totalAmount;
-      } else {
-        user.gold -= totalAmount;
-      }
-
-      // 添加物品
-      await user.addItemToInventory(itemId, quantity * item.quantity);
-      await user.save();
-
-      // 创建已支付订单
-      const order = new Order({
-        orderId: Order.generateOrderId(),
-        userId,
-        itemId,
-        itemName: item.name,
-        itemType: item.type,
-        amount: totalAmount,
-        currency: paymentMethod,
-        quantity,
-        status: 'paid',
-        paymentMethod,
-        paidAt: new Date()
-      });
-      await order.save();
-
-      return res.json({
-        success: true,
-        message: '购买成功',
-        data: {
-          orderId: order.orderId,
-          status: 'paid',
-          item: {
-            name: item.name,
-            quantity: quantity * item.quantity
-          },
-          paymentInfo: {
-            method: paymentMethod,
-            amount: totalAmount
-          }
-        }
-      });
-    }
-
-    // 第三方支付创建订单
-    const orderId = Order.generateOrderId();
+    // 创建订单
     const order = new Order({
-      orderId,
+      orderId: Order.generateOrderId(),
       userId,
       itemId,
       itemName: item.name,
       itemType: item.type,
-      amount: totalAmount,
-      currency: 'CNY',
+      amount: totalPrice,
+      currency: 'diamond',
       quantity,
-      status: 'pending',
-      paymentMethod
+      status: 'paid',
+      paymentMethod: 'diamond',
+      paidAt: new Date()
     });
     await order.save();
 
-    // 生成支付参数
-    let paymentData;
-    
-    if (paymentMethod === 'alipay') {
-      paymentData = generateAlipayParams(order, item);
-    } else if (paymentMethod === 'wechat') {
-      paymentData = generateWechatParams(order, item);
-    }
+    // 扣除钻石并发放物品
+    user.diamond -= totalPrice;
+    await user.addItemToInventory(itemId, quantity * item.quantity);
+    await user.save();
+    await item.increaseSoldCount(quantity);
 
     res.json({
       success: true,
-      message: '订单创建成功',
+      message: '支付成功',
       data: {
-        orderId,
-        status: 'pending',
-        amount: totalAmount,
-        currency: 'CNY',
+        orderId: order.orderId,
         item: {
           name: item.name,
           quantity: quantity * item.quantity
         },
-        paymentData
+        cost: {
+          currency: 'diamond',
+          amount: totalPrice
+        },
+        remainingBalance: {
+          diamond: user.diamond,
+          gold: user.gold
+        }
       }
     });
   } catch (error) {
-    console.error('创建订单错误:', error);
+    console.error('钻石支付错误:', error);
     res.status(500).json({
       success: false,
-      message: '创建订单失败'
+      message: '支付失败'
     });
   }
 });
 
-// @route   POST /api/payment/alipay-callback
-// @desc    支付宝支付回调
-// @access  Public
-router.post('/alipay-callback', async (req, res) => {
+// @route   POST /api/payment/gold
+// @desc    使用金币支付
+// @access  Private
+router.post('/gold', authenticate, async (req, res) => {
   try {
-    const notifyData = req.body;
-    
-    // 验证签名（生产环境需要实现）
-    // const isValid = verifyAlipaySignature(notifyData);
-    
-    // 查找订单
-    const order = await Order.findOne({ orderId: notifyData.out_trade_no });
-    
-    if (!order) {
-      return res.status(404).send('fail');
+    const { itemId, quantity = 1 } = req.body;
+    const userId = req.userId;
+
+    const item = await ShopItem.findOne({ itemId });
+    if (!item || !item.isAvailable) {
+      return res.status(404).json({
+        success: false,
+        message: '商品不存在或已下架'
+      });
     }
 
-    if (notifyData.trade_status === 'TRADE_SUCCESS' || 
-        notifyData.trade_status === 'TRADE_FINISHED') {
-      
-      // 更新订单状态
-      order.status = 'paid';
-      order.paidAt = new Date();
-      order.paymentInfo = {
-        tradeNo: notifyData.trade_no,
-        buyerId: notifyData.buyer_id,
-        payTime: new Date(notifyData.gmt_payment)
-      };
-      await order.save();
+    // 检查是否支持金币支付
+    if (item.price.currency !== 'gold') {
+      return res.status(400).json({
+        success: false,
+        message: '该商品不支持金币支付'
+      });
+    }
 
-      // 发放物品
-      const user = await User.findById(order.userId);
-      await user.addItemToInventory(order.itemId, order.quantity);
-      await user.save();
+    const user = await User.findById(userId);
+    const totalPrice = item.price.amount * quantity;
 
-      // 增加销量
-      const item = await ShopItem.findOne({ itemId: order.itemId });
-      if (item) {
-        await item.increaseSoldCount(order.quantity);
+    if (user.gold < totalPrice) {
+      return res.status(403).json({
+        success: false,
+        message: '金币不足',
+        required: totalPrice,
+        current: user.gold
+      });
+    }
+
+    // 创建订单
+    const order = new Order({
+      orderId: Order.generateOrderId(),
+      userId,
+      itemId,
+      itemName: item.name,
+      itemType: item.type,
+      amount: totalPrice,
+      currency: 'gold',
+      quantity,
+      status: 'paid',
+      paymentMethod: 'gold',
+      paidAt: new Date()
+    });
+    await order.save();
+
+    // 扣除金币并发放物品
+    user.gold -= totalPrice;
+    await user.addItemToInventory(itemId, quantity * item.quantity);
+    await user.save();
+    await item.increaseSoldCount(quantity);
+
+    res.json({
+      success: true,
+      message: '支付成功',
+      data: {
+        orderId: order.orderId,
+        item: {
+          name: item.name,
+          quantity: quantity * item.quantity
+        },
+        cost: {
+          currency: 'gold',
+          amount: totalPrice
+        },
+        remainingBalance: {
+          gold: user.gold,
+          diamond: user.diamond
+        }
       }
-    }
-
-    res.send('success');
+    });
   } catch (error) {
-    console.error('支付宝回调错误:', error);
-    res.status(500).send('fail');
+    console.error('金币支付错误:', error);
+    res.status(500).json({
+      success: false,
+      message: '支付失败'
+    });
   }
 });
 
-// @route   POST /api/payment/wechat-callback
-// @desc    微信支付回调
-// @access  Public
-router.post('/wechat-callback', async (req, res) => {
-  try {
-    const xmlData = req.body;
-    
-    // 解析XML（生产环境需要实现）
-    // const notifyData = parseXML(xmlData);
-    
-    // 验证签名（生产环境需要实现）
-    // const isValid = verifyWechatSignature(notifyData);
-
-    // 返回成功响应给微信
-    res.set('Content-Type', 'application/xml');
-    res.send(`
-      <xml>
-        <return_code><![CDATA[SUCCESS]]></return_code>
-        <return_msg><![CDATA[OK]]></return_msg>
-      </xml>
-    `);
-  } catch (error) {
-    console.error('微信回调错误:', error);
-    res.set('Content-Type', 'application/xml');
-    res.send(`
-      <xml>
-        <return_code><![CDATA[FAIL]]></return_code>
-        <return_msg><![CDATA[处理失败]]></return_msg>
-      </xml>
-    `);
-  }
-});
+// ==================== 订单管理 ====================
 
 // @route   GET /api/payment/orders
 // @desc    获取订单列表
@@ -342,6 +408,77 @@ router.get('/orders/:orderId', authenticate, async (req, res) => {
   }
 });
 
+// @route   GET /api/payment/orders/:orderId/status
+// @desc    查询订单支付状态
+// @access  Private
+router.get('/orders/:orderId/status', authenticate, async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const status = await paymentService.queryOrderStatus(orderId);
+
+    res.json({
+      success: true,
+      data: status
+    });
+  } catch (error) {
+    console.error('查询订单状态错误:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message || '查询订单状态失败'
+    });
+  }
+});
+
+// ==================== 退款管理 ====================
+
+// @route   POST /api/payment/refund
+// @desc    申请退款
+// @access  Private
+router.post('/refund', authenticate, async (req, res) => {
+  try {
+    const { orderId, refundAmount, reason = '用户申请退款' } = req.body;
+
+    const result = await paymentService.createRefund(orderId, refundAmount, reason);
+
+    res.json({
+      success: true,
+      message: '退款申请已提交',
+      data: result
+    });
+  } catch (error) {
+    console.error('退款错误:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message || '退款失败'
+    });
+  }
+});
+
+// @route   POST /api/payment/close
+// @desc    关闭未支付订单
+// @access  Private
+router.post('/close', authenticate, async (req, res) => {
+  try {
+    const { orderId } = req.body;
+
+    await paymentService.closePayment(orderId);
+
+    res.json({
+      success: true,
+      message: '订单已关闭'
+    });
+  } catch (error) {
+    console.error('关闭订单错误:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message || '关闭订单失败'
+    });
+  }
+});
+
+// ==================== 统计 ====================
+
 // @route   GET /api/payment/stats
 // @desc    获取支付统计
 // @access  Private
@@ -370,48 +507,68 @@ router.get('/stats', authenticate, async (req, res) => {
   }
 });
 
-// ==================== 辅助函数 ====================
+// ==================== 测试接口（仅开发环境） ====================
 
-// 生成支付宝支付参数
-function generateAlipayParams(order, item) {
-  // 这里应该调用支付宝 SDK 生成真实的支付参数
-  // 以下为模拟数据
-  const bizContent = {
-    out_trade_no: order.orderId,
-    total_amount: order.amount.toFixed(2),
-    subject: item.name,
-    product_code: 'QUICK_WAP_WAY'
-  };
+// @route   POST /api/payment/mock/alipay
+// @desc    模拟支付宝支付完成（测试用）
+// @access  Private
+router.post('/mock/alipay', authenticate, async (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({
+      success: false,
+      message: '生产环境不可用'
+    });
+  }
 
-  return {
-    method: 'alipay.trade.app.pay',
-    app_id: PAYMENT_CONFIG.alipay.appId,
-    charset: 'utf-8',
-    sign_type: 'RSA2',
-    timestamp: new Date().toISOString(),
-    version: '1.0',
-    notify_url: PAYMENT_CONFIG.alipay.notifyUrl,
-    biz_content: JSON.stringify(bizContent)
-  };
-}
+  try {
+    const { orderId } = req.body;
 
-// 生成微信支付参数
-function generateWechatParams(order, item) {
-  // 这里应该调用微信支付 SDK 生成真实的支付参数
-  // 以下为模拟数据
-  const nonceStr = crypto.randomBytes(16).toString('hex');
-  
-  return {
-    appid: PAYMENT_CONFIG.wechat.appId,
-    mch_id: PAYMENT_CONFIG.wechat.mchId,
-    nonce_str: nonceStr,
-    body: item.name,
-    out_trade_no: order.orderId,
-    total_fee: Math.floor(order.amount * 100), // 转换为分
-    spbill_create_ip: '127.0.0.1',
-    notify_url: PAYMENT_CONFIG.wechat.notifyUrl,
-    trade_type: 'APP'
-  };
-}
+    const mockData = alipayService.mockPaymentComplete(orderId);
+    await paymentService.handleNotify('alipay', mockData);
+
+    res.json({
+      success: true,
+      message: '模拟支付完成',
+      data: mockData
+    });
+  } catch (error) {
+    console.error('模拟支付错误:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+// @route   POST /api/payment/mock/wechat
+// @desc    模拟微信支付完成（测试用）
+// @access  Private
+router.post('/mock/wechat', authenticate, async (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({
+      success: false,
+      message: '生产环境不可用'
+    });
+  }
+
+  try {
+    const { orderId } = req.body;
+
+    const mockXml = wechatService.mockPaymentComplete(orderId);
+    await paymentService.handleNotify('wechat', mockXml);
+
+    res.json({
+      success: true,
+      message: '模拟支付完成',
+      data: { orderId }
+    });
+  } catch (error) {
+    console.error('模拟支付错误:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
 
 module.exports = router;
