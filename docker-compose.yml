@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: fate-tower-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongo:27017/fate_tower
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - ALIPAY_APP_ID=${ALIPAY_APP_ID}
+      - WECHAT_APP_ID=${WECHAT_APP_ID}
+      - WECHAT_MCH_ID=${WECHAT_MCH_ID}
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - fate-tower-network
+    volumes:
+      - ./logs:/app/logs
+
+  mongo:
+    image: mongo:6.0
+    container_name: fate-tower-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - fate-tower-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: fate-tower-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - fate-tower-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: fate-tower-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - api
+    networks:
+      - fate-tower-network
+
+volumes:
+  mongo-data:
+  redis-data:
+
+networks:
+  fate-tower-network:
+    driver: bridge
