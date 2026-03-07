@@ -929,18 +929,37 @@
         let postcardSystem, honorSystem, shareSystem;
 
         function initSystems() {
+            console.log('正在初始化系统...');
+            
             // 初始化明信片系统
-            postcardSystem = new PostcardSystem();
+            if (typeof PostcardSystem !== 'undefined') {
+                postcardSystem = new PostcardSystem();
+                console.log('明信片系统已初始化');
+            } else {
+                console.error('PostcardSystem 未加载');
+            }
             
             // 初始化荣誉系统
-            honorSystem = new HonorSystem();
+            if (typeof HonorSystem !== 'undefined') {
+                honorSystem = new HonorSystem();
+                console.log('荣誉系统已初始化');
+            } else {
+                console.error('HonorSystem 未加载');
+            }
             
             // 初始化分享系统
-            shareSystem = new ShareSystem();
+            if (typeof ShareSystem !== 'undefined') {
+                shareSystem = new ShareSystem();
+                console.log('分享系统已初始化');
+            } else {
+                console.error('ShareSystem 未加载');
+            }
             
             // 初始化称号显示
-            const titleDisplay = new TitleDisplay('playerTitle', honorSystem);
-            titleDisplay.init();
+            if (typeof TitleDisplay !== 'undefined' && honorSystem) {
+                const titleDisplay = new TitleDisplay('playerTitle', honorSystem);
+                titleDisplay.init();
+            }
             
             // 渲染收藏和荣誉
             renderPostcardCollection();
@@ -948,6 +967,8 @@
             
             // 更新战绩统计
             updateStatsDisplay();
+            
+            console.log('系统初始化完成');
         }
 
         // 渲染明信片收藏
@@ -1200,8 +1221,15 @@
         renderInventory();
         renderShop();
         
-        // 初始化新系统
-        document.addEventListener('DOMContentLoaded', initSystems);
+        // 初始化新系统 - 多个时机确保加载
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initSystems);
+        } else {
+            initSystems();
+        }
+        
+        // 作为后备，也延迟执行一次
+        setTimeout(initSystems, 100);
     </script>
 </body>
 </html>
