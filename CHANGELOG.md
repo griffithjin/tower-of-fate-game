@@ -1,5 +1,26 @@
 # 更新日志
 
+## [1.2.0] - 2024-01-20
+
+### 🔧 管理后台系统
+- ✅ 支付配置可视化面板
+- ✅ 支付宝配置管理 (APP_ID/密钥/网关/回调)
+- ✅ 微信支付配置管理 (MCH_ID/API_KEY/证书)
+- ✅ 沙箱/生产环境切换
+- ✅ 支付开关控制
+- ✅ 连接测试功能
+- ✅ 测试订单管理
+- ✅ 支付统计面板
+- ✅ 模拟回调功能
+
+### 管理后台API
+- `GET /api/admin/payment/config` - 获取支付配置
+- `POST /api/admin/payment/config` - 保存支付配置
+- `POST /api/admin/payment/config/alipay/test` - 测试支付宝
+- `POST /api/admin/payment/config/wechat/test` - 测试微信
+- `POST /api/admin/payment/test-order` - 创建测试订单
+- `POST /api/admin/payment/simulate-callback` - 模拟回调
+
 ## [1.1.0] - 2024-01-15
 
 ### 💳 支付系统升级

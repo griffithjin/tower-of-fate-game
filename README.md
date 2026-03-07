@@ -123,6 +123,21 @@ CORS_ORIGIN=http://localhost:8080,https://your-domain.com
 | POST | /api/payment/wechat-callback | 微信回调 |
 | GET | /api/payment/orders | 订单列表 |
 
+### 管理后台系统
+
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| GET | /api/admin/payment/config | 获取支付配置 |
+| POST | /api/admin/payment/config | 保存支付配置 |
+| POST | /api/admin/payment/config/alipay/test | 测试支付宝连接 |
+| POST | /api/admin/payment/config/wechat/test | 测试微信支付连接 |
+| POST | /api/admin/payment/test-order | 创建测试订单 |
+| GET | /api/admin/payment/test-orders | 获取测试订单列表 |
+| POST | /api/admin/payment/simulate-callback | 模拟支付回调 |
+| GET | /api/admin/payment/stats | 支付统计 |
+
+访问 `/admin/payment-config.html` 使用可视化配置面板。
+
 ### 积分系统
 
 | 方法 | 路径 | 描述 |
