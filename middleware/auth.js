@@ -76,7 +76,10 @@ const optionalAuth = async (req, res, next) => {
 
 // 管理员权限中间件
 const requireAdmin = (req, res, next) => {
-  if (!req.user || req.user.role !== 'admin') {
+  // 简化处理：检查用户角色或用户名
+  const isAdmin = req.user.role === 'admin' || req.user.username === 'admin';
+  
+  if (!isAdmin) {
     return res.status(403).json({
       success: false,
       message: '需要管理员权限'

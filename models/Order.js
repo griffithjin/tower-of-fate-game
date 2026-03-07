@@ -76,6 +76,10 @@ const orderSchema = new mongoose.Schema({
     refundedAt: Date,
     refundAmount: Number,
     refundReason: String
+  },
+  isTest: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true

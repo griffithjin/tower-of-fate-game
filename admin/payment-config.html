@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支付配置管理 - 命运塔后台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+        }
+
+        .alipay-icon { background: #1677ff; color: white; }
+        .wechat-icon { background: #07c160; color: white; }
+        .test-icon { background: #ff6b6b; color: white; }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .status-enabled {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-disabled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+            font-size: 0.95em;
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .form-hint {
+            font-size: 0.85em;
+            color: #888;
+            margin-top: 6px;
+        }
+
+        .switch-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .switch-label {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .switch {
+            position: relative;
+            width: 60px;
+            height: 32px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 32px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(28px);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(17, 153, 142, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(240, 147, 251, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .test-panel {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .test-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .test-result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .test-result.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .test-result.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .env-toggle {
+            display: flex;
+            background: #e9ecef;
+            border-radius: 10px;
+            padding: 4px;
+            width: fit-content;
+        }
+
+        .env-btn {
+            padding: 8px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .env-btn.active {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            color: #667eea;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success { background: #28a745; }
+        .toast.error { background: #dc3545; }
+        .toast.info { background: #17a2b8; }
+
+        .order-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .order-item {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .order-info h4 {
+            color: #333;
+            font-size: 1em;
+            margin-bottom: 4px;
+        }
+
+        .order-info p {
+            color: #888;
+            font-size: 0.85em;
+        }
+
+        .order-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+
+        .order-status.paid { background: #d4edda; color: #155724; }
+        .order-status.pending { background: #fff3cd; color: #856404; }
+        .order-status.failed { background: #f8d7da; color: #721c24; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏰 支付配置管理</h1>
+            <p>命运塔游戏支付系统后台配置面板</p>
+        </div>
+
+        <!-- 支付开关 -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <span style="font-size: 1.3em;">🔧</span>
+                    支付功能开关
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="grid-2">
+                    <div class="switch-container">
+                        <span class="switch-label">支付宝支付</span>
+                        <label class="switch">
+                            <input type="checkbox" id="alipayEnabled">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="alipayStatus" class="status-badge status-disabled">已禁用</span>
+                    </div>
+                    <div class="switch-container">
+                        <span class="switch-label">微信支付</span>
+                        <label class="switch">
+                            <input type="checkbox" id="wechatEnabled">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="wechatStatus" class="status-badge status-disabled">已禁用</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 支付宝配置 -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="card-icon alipay-icon">支</div>
+                    支付宝配置
+                </div>
+                <div class="env-toggle">
+                    <button class="env-btn active" data-env="sandbox" data-type="alipay">沙箱环境</button>
+                    <button class="env-btn" data-env="production" data-type="alipay">生产环境</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">应用ID (APP_ID)</label>
+                        <input type="text" class="form-input" id="alipayAppId" placeholder="2024XXXXXXXXXXXX">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">网关地址 (GATEWAY_URL)</label>
+                        <input type="text" class="form-input" id="alipayGateway" placeholder="https://openapi.alipaydev.com/gateway.do">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">应用私钥 (PRIVATE_KEY)</label>
+                    <textarea class="form-textarea" id="alipayPrivateKey" placeholder="-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEA...
+-----END RSA PRIVATE KEY-----"></textarea>
+                    <p class="form-hint">支持 PKCS1 和 PKCS8 格式，支持带或不带 BEGIN/END 标记</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">支付宝公钥 (ALIPAY_PUBLIC_KEY)</label>
+                    <textarea class="form-textarea" id="alipayPublicKey" placeholder="-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...
+-----END PUBLIC KEY-----"></textarea>
+                    <p class="form-hint">从支付宝开放平台获取的支付宝公钥（不是应用公钥）</p>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">回调地址 (NOTIFY_URL)</label>
+                        <input type="text" class="form-input" id="alipayNotifyUrl" placeholder="https://your-domain.com/api/payment/alipay-callback">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">返回地址 (RETURN_URL)</label>
+                        <input type="text" class="form-input" id="alipayReturnUrl" placeholder="https://your-domain.com/payment/success">
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="testAlipay()">
+                        <span>🔗</span> 测试连接
+                    </button>
+                    <button class="btn btn-primary" onclick="saveAlipayConfig()">
+                        <span>💾</span> 保存配置
+                    </button>
+                </div>
+                <div class="test-result" id="alipayTestResult"></div>
+            </div>
+        </div>
+
+        <!-- 微信支付配置 -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="card-icon wechat-icon">微</div>
+                    微信支付配置
+                </div>
+                <div class="env-toggle">
+                    <button class="env-btn active" data-env="sandbox" data-type="wechat">沙箱环境</button>
+                    <button class="env-btn" data-env="production" data-type="wechat">生产环境</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">应用ID (APP_ID)</label>
+                        <input type="text" class="form-input" id="wechatAppId" placeholder="wxXXXXXXXXXXXXXXXX">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">商户号 (MCH_ID)</label>
+                        <input type="text" class="form-input" id="wechatMchId" placeholder="1234567890">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">API密钥 (API_KEY)</label>
+                    <input type="text" class="form-input" id="wechatApiKey" placeholder="32位随机字符串">
+                    <p class="form-hint">在微信支付商户平台 - API安全 中设置</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">证书文件 (apiclient_cert.p12)</label>
+                    <input type="file" class="form-input" id="wechatCert" accept=".p12,.pem">
+                    <p class="form-hint">上传从微信支付商户平台下载的API证书（退款功能需要）</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">回调地址 (NOTIFY_URL)</label>
+                    <input type="text" class="form-input" id="wechatNotifyUrl" placeholder="https://your-domain.com/api/payment/wechat-callback">
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="testWechat()">
+                        <span>🔗</span> 测试连接
+                    </button>
+                    <button class="btn btn-primary" onclick="saveWechatConfig()">
+                        <span>💾</span> 保存配置
+                    </button>
+                </div>
+                <div class="test-result" id="wechatTestResult"></div>
+            </div>
+        </div>
+
+        <!-- 测试订单 -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="card-icon test-icon">🧪</div>
+                    支付测试
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalRevenue">¥0.00</div>
+                        <div class="stat-label">累计收入</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="todayRevenue">¥0.00</div>
+                        <div class="stat-label">今日收入</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalOrders">0</div>
+                        <div class="stat-label">总订单数</div>
+                    </div>
+                </div>
+
+                <div class="test-panel">
+                    <div class="test-title">📝 创建测试订单</div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">支付方式</label>
+                            <select class="form-input" id="testPaymentMethod">
+                                <option value="alipay">支付宝</option>
+                                <option value="wechat">微信支付</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">测试金额 (元)</label>
+                            <input type="number" class="form-input" id="testAmount" value="0.01" step="0.01" min="0.01">
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-warning" onclick="createTestOrder()">
+                            <span>🛒</span> 创建测试订单
+                        </button>
+                        <button class="btn btn-primary" onclick="loadTestOrders()">
+                            <span>🔄</span> 刷新订单列表
+                        </button>
+                    </div>
+                    <div class="test-result" id="testOrderResult"></div>
+                </div>
+
+                <div class="test-panel" style="margin-top: 20px;">
+                    <div class="test-title">📋 最近测试订单</div>
+                    <div class="order-list" id="orderList">
+                        <p style="text-align: center; color: #888; padding: 20px;">暂无测试订单</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // API 基础URL
+        const API_BASE = '/api';
+        
+        // 页面加载时获取配置
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfig();
+            loadPaymentStats();
+            loadTestOrders();
+            setupEnvToggle();
+        });
+
+        // 设置环境切换按钮
+        function setupEnvToggle() {
+            document.querySelectorAll('.env-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const type = this.dataset.type;
+                    const env = this.dataset.env;
+                    
+                    // 切换同类型的按钮状态
+                    document.querySelectorAll(`.env-btn[data-type="${type}"]`).forEach(b => {
+                        b.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // 更新网关地址
+                    if (type === 'alipay') {
+                        const gateway = env === 'sandbox' 
+                            ? 'https://openapi.alipaydev.com/gateway.do'
+                            : 'https://openapi.alipay.com/gateway.do';
+                        document.getElementById('alipayGateway').value = gateway;
+                    }
+                });
+            });
+        }
+
+        // 加载配置
+        async function loadConfig() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/payment/config`, {
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`
+                    }
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    const config = result.data;
+                    
+                    // 支付宝配置
+                    document.getElementById('alipayEnabled').checked = config.alipay.enabled;
+                    document.getElementById('alipayStatus').textContent = config.alipay.enabled ? '已启用' : '已禁用';
+                    document.getElementById('alipayStatus').className = config.alipay.enabled ? 'status-badge status-enabled' : 'status-badge status-disabled';
+                    document.getElementById('alipayAppId').value = config.alipay.appId || '';
+                    document.getElementById('alipayGateway').value = config.alipay.gateway || '';
+                    document.getElementById('alipayPrivateKey').value = config.alipay.privateKey || '';
+                    document.getElementById('alipayPublicKey').value = config.alipay.publicKey || '';
+                    document.getElementById('alipayNotifyUrl').value = config.alipay.notifyUrl || '';
+                    document.getElementById('alipayReturnUrl').value = config.alipay.returnUrl || '';
+                    
+                    // 微信支付配置
+                    document.getElementById('wechatEnabled').checked = config.wechat.enabled;
+                    document.getElementById('wechatStatus').textContent = config.wechat.enabled ? '已启用' : '已禁用';
+                    document.getElementById('wechatStatus').className = config.wechat.enabled ? 'status-badge status-enabled' : 'status-badge status-disabled';
+                    document.getElementById('wechatAppId').value = config.wechat.appId || '';
+                    document.getElementById('wechatMchId').value = config.wechat.mchId || '';
+                    document.getElementById('wechatApiKey').value = config.wechat.apiKey || '';
+                    document.getElementById('wechatNotifyUrl').value = config.wechat.notifyUrl || '';
+                }
+            } catch (error) {
+                showToast('加载配置失败: ' + error.message, 'error');
+            }
+        }
+
+        // 测试支付宝连接
+        async function testAlipay() {
+            const btn = event.target.closest('button');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> 测试中...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/payment/config/alipay/test`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({
+                        appId: document.getElementById('alipayAppId').value,
+                        privateKey: document.getElementById('alipayPrivateKey').value,
+                        publicKey: document.getElementById('alipayPublicKey').value,
+                        gateway: document.getElementById('alipayGateway').value,
+                        sandbox: document.querySelector('.env-btn[data-type="alipay"].active').dataset.env === 'sandbox'
+                    })
+                });
+                
+                const result = await response.json();
+                const resultDiv = document.getElementById('alipayTestResult');
+                
+                if (result.success) {
+                    resultDiv.className = 'test-result success';
+                    resultDiv.innerHTML = `<strong>✅ 连接成功</strong><br>${result.message}`;
+                } else {
+                    resultDiv.className = 'test-result error';
+                    resultDiv.innerHTML = `<strong>❌ 连接失败</strong><br>${result.message}`;
+                }
+            } catch (error) {
+                showToast('测试失败: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>🔗</span> 测试连接';
+            }
+        }
+
+        // 测试微信支付连接
+        async function testWechat() {
+            const btn = event.target.closest('button');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> 测试中...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/payment/config/wechat/test`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({
+                        appId: document.getElementById('wechatAppId').value,
+                        mchId: document.getElementById('wechatMchId').value,
+                        apiKey: document.getElementById('wechatApiKey').value,
+                        sandbox: document.querySelector('.env-btn[data-type="wechat"].active').dataset.env === 'sandbox'
+                    })
+                });
+                
+                const result = await response.json();
+                const resultDiv = document.getElementById('wechatTestResult');
+                
+                if (result.success) {
+                    resultDiv.className = 'test-result success';
+                    resultDiv.innerHTML = `<strong>✅ 连接成功</strong><br>${result.message}`;
+                } else {
+                    resultDiv.className = 'test-result error';
+                    resultDiv.innerHTML = `<strong>❌ 连接失败</strong><br>${result.message}`;
+                }
+            } catch (error) {
+                showToast('测试失败: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>🔗</span> 测试连接';
+            }
+        }
+
+        // 保存支付宝配置
+        async function saveAlipayConfig() {
+            const btn = event.target.closest('button');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> 保存中...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/payment/config`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({
+                        alipay: {
+                            enabled: document.getElementById('alipayEnabled').checked,
+                            sandbox: document.querySelector('.env-btn[data-type="alipay"].active').dataset.env === 'sandbox',
+                            appId: document.getElementById('alipayAppId').value,
+                            privateKey: document.getElementById('alipayPrivateKey').value,
+                            publicKey: document.getElementById('alipayPublicKey').value,
+                            gateway: document.getElementById('alipayGateway').value,
+                            notifyUrl: document.getElementById('alipayNotifyUrl').value,
+                            returnUrl: document.getElementById('alipayReturnUrl').value
+                        }
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('支付宝配置保存成功', 'success');
+                    document.getElementById('alipayStatus').textContent = 
+                        document.getElementById('alipayEnabled').checked ? '已启用' : '已禁用';
+                    document.getElementById('alipayStatus').className = 
+                        document.getElementById('alipayEnabled').checked ? 'status-badge status-enabled' : 'status-badge status-disabled';
+                } else {
+                    showToast('保存失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showToast('保存失败: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>💾</span> 保存配置';
+            }
+        }
+
+        // 保存微信支付配置
+        async function saveWechatConfig() {
+            const btn = event.target.closest('button');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> 保存中...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/payment/config`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({
+                        wechat: {
+                            enabled: document.getElementById('wechatEnabled').checked,
+                            sandbox: document.querySelector('.env-btn[data-type="wechat"].active').dataset.env === 'sandbox',
+                            appId: document.getElementById('wechatAppId').value,
+                            mchId: document.getElementById('wechatMchId').value,
+                            apiKey: document.getElementById('wechatApiKey').value,
+                            notifyUrl: document.getElementById('wechatNotifyUrl').value
+                        }
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('微信支付配置保存成功', 'success');
+                    document.getElementById('wechatStatus').textContent = 
+                        document.getElementById('wechatEnabled').checked ? '已启用' : '已禁用';
+                    document.getElementById('wechatStatus').className = 
+                        document.getElementById('wechatEnabled').checked ? 'status-badge status-enabled' : 'status-badge status-disabled';
+                } else {
+                    showToast('保存失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showToast('保存失败: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>💾</span> 保存配置';
+            }
+        }
+
+        // 创建测试订单
+        async function createTestOrder() {
+            const btn = event.target.closest('button');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> 创建中...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/payment/test-order`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({
+                        paymentMethod: document.getElementById('testPaymentMethod').value,
+                        amount: parseFloat(document.getElementById('testAmount').value)
+                    })
+                });
+                
+                const result = await response.json();
+                const resultDiv = document.getElementById('testOrderResult');
+                
+                if (result.success) {
+                    resultDiv.className = 'test-result success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ 测试订单创建成功</strong><br>
+                        订单号: ${result.data.orderId}<br>
+                        金额: ¥${result.data.amount}<br>
+                        支付方式: ${result.data.paymentMethod === 'alipay' ? '支付宝' : '微信'}
+                    `;
+                    loadTestOrders();
+                } else {
+                    resultDiv.className = 'test-result error';
+                    resultDiv.innerHTML = `<strong>❌ 创建失败</strong><br>${result.message}`;
+                }
+            } catch (error) {
+                showToast('创建失败: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>🛒</span> 创建测试订单';
+            }
+        }
+
+        // 加载测试订单
+        async function loadTestOrders() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/payment/test-orders`, {
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`
+                    }
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    const orderList = document.getElementById('orderList');
+                    
+                    if (result.data.orders.length === 0) {
+                        orderList.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">暂无测试订单</p>';
+                        return;
+                    }
+                    
+                    orderList.innerHTML = result.data.orders.map(order => `
+                        <div class="order-item">
+                            <div class="order-info">
+                                <h4>${order.orderId}</h4>
+                                <p>${order.itemName} | ¥${order.amount} | ${order.paymentMethod === 'alipay' ? '支付宝' : '微信'}</p>
+                                <p style="font-size: 0.8em;">${new Date(order.createdAt).toLocaleString()}</p>
+                            </div>
+                            <div>
+                                <span class="order-status ${order.status}">${getStatusText(order.status)}</span>
+                                ${order.status === 'pending' ? `
+                                    <button class="btn btn-success" style="margin-left: 10px; padding: 6px 12px; font-size: 0.85em;" 
+                                        onclick="simulateCallback('${order.orderId}', '${order.paymentMethod}', true)">模拟支付</button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('加载订单失败:', error);
+            }
+        }
+
+        // 模拟回调
+        async function simulateCallback(orderId, paymentMethod, success) {
+            try {
+                const response = await fetch(`${API_BASE}/admin/payment/simulate-callback`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({
+                        orderId,
+                        paymentMethod,
+                        success
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('模拟回调成功', 'success');
+                    loadTestOrders();
+                    loadPaymentStats();
+                } else {
+                    showToast('模拟回调失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showToast('模拟回调失败: ' + error.message, 'error');
+            }
+        }
+
+        // 加载支付统计
+        async function loadPaymentStats() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/payment/stats`, {
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`
+                    }
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    const data = result.data;
+                    document.getElementById('totalRevenue').textContent = 
+                        '¥' + (data.total.totalRevenue || 0).toFixed(2);
+                    document.getElementById('todayRevenue').textContent = 
+                        '¥' + (data.today.revenue || 0).toFixed(2);
+                    document.getElementById('totalOrders').textContent = 
+                        data.total.totalOrders || 0;
+                }
+            } catch (error) {
+                console.error('加载统计失败:', error);
+            }
+        }
+
+        // 获取状态文本
+        function getStatusText(status) {
+            const map = {
+                pending: '待支付',
+                paid: '已支付',
+                failed: '失败',
+                cancelled: '已取消',
+                refunded: '已退款'
+            };
+            return map[status] || status;
+        }
+
+        // 获取Token（简化版，实际应从登录状态获取）
+        function getToken() {
+            // 从localStorage或sessionStorage获取
+            return localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+        }
+
+        // 显示提示
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 const { RateLimiterMemory } = require('rate-limiter-flexible');
+const path = require('path');
 require('dotenv').config();
 
 // 导入配置
@@ -18,6 +19,7 @@ const shopRoutes = require('./routes/shop');
 const tournamentRoutes = require('./routes/tournament');
 const paymentRoutes = require('./routes/payment');
 const pointsRoutes = require('./routes/points');
+const adminRoutes = require('./routes/admin');
 
 // 导入 Socket.io 处理器
 const gameSocketHandler = require('./socket/gameHandler');
@@ -87,6 +89,10 @@ app.use('/api/shop', shopRoutes);
 app.use('/api/tournament', tournamentRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/points', pointsRoutes);
+app.use('/api/admin', adminRoutes);
+
+// 静态文件 - 管理后台
+app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
 // 健康检查
 app.get('/health', (req, res) => {

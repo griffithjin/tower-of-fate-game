@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>命运塔数据分析看板 | Fate Tower Analytics</title>
+  
+  <!-- ECharts -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  
+  <!-- 自定义样式 -->
+  <link rel="stylesheet" href="css/analytics.css">
+  
+  <style>
+    /* 额外的自定义样式 */
+    .realtime-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(145, 204, 117, 0.2);
+      color: var(--success-color);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+    
+    .realtime-badge::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: var(--success-color);
+      border-radius: 50%;
+      animation: pulse-dot 2s infinite;
+    }
+    
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .pulse {
+      animation: pulse-value 0.5s ease;
+    }
+    
+    @keyframes pulse-value {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); color: var(--success-color); }
+      100% { transform: scale(1); }
+    }
+    
+    .prediction-card {
+      background: linear-gradient(135deg, rgba(84, 112, 198, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      border: 1px solid rgba(84, 112, 198, 0.3);
+    }
+    
+    .prediction-probability {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+    
+    .tab-nav {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+    
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+    }
+    
+    .tab-btn:hover,
+    .tab-btn.active {
+      background: rgba(84, 112, 198, 0.2);
+      color: var(--text-primary);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="logo-icon">🏰</div>
+        <div>
+          <div class="logo-text">命运塔</div>
+          <div class="logo-subtitle">数据分析中心</div>
+        </div>
+      </div>
+      
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a class="nav-link active" onclick="switchTab('overview')">
+            <i>📊</i>
+            <span>数据概览</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" onclick="switchTab('users')">
+            <i>👥</i>
+            <span>用户分析</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" onclick="switchTab('revenue')">
+            <i>💰</i>
+            <span>收入分析</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" onclick="switchTab('funnel')">
+            <i>🔄</i>
+            <span>转化漏斗</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" onclick="switchTab('balance')">
+            <i>⚖️</i>
+            <span>游戏平衡</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" onclick="switchTab('report')">
+            <i>📋</i>
+            <span>运营日报</span>
+          </a>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+      <!-- 顶部栏 -->
+      <header class="header">
+        <div>
+          <h1 class="page-title">数据概览</h1>
+          <span class="realtime-badge">实时更新</span>
+        </div>
+        <div class="header-actions">
+          <select class="date-picker" onchange="switchTimeRange(this.value)">
+            <option value="today">今日</option>
+            <option value="yesterday">昨日</option>
+            <option value="7days">近7天</option>
+            <option value="30days">近30天</option>
+          </select>
+          <button class="refresh-btn" onclick="refreshDashboard()">
+            <span>🔄</span>
+            <span>刷新数据</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- 数据概览 Tab -->
+      <div id="tab-overview" class="tab-content active">
+        <!-- 核心指标卡片区 -->
+        <div class="kpi-grid">
+          <div class="kpi-card" id="kpi-online">
+            <div class="kpi-header">
+              <span class="kpi-label">实时在线</span>
+              <div class="kpi-icon online">👥</div>
+            </div>
+            <div class="kpi-value">1,234</div>
+            <div class="kpi-change up">
+              <span>↑</span>
+              <span>5.2%</span>
+            </div>
+          </div>
+          
+          <div class="kpi-card" id="kpi-dau">
+            <div class="kpi-header">
+              <span class="kpi-label">今日DAU</span>
+              <div class="kpi-icon dau">📈</div>
+            </div>
+            <div class="kpi-value">5,678</div>
+            <div class="kpi-change up">
+              <span>↑</span>
+              <span>12%</span>
+            </div>
+          </div>
+          
+          <div class="kpi-card" id="kpi-revenue">
+            <div class="kpi-header">
+              <span class="kpi-label">今日收入</span>
+              <div class="kpi-icon revenue">💴</div>
+            </div>
+            <div class="kpi-value">¥12,580</div>
+            <div class="kpi-change up">
+              <span>↑</span>
+              <span>8%</span>
+            </div>
+          </div>
+          
+          <div class="kpi-card" id="kpi-paidrate">
+            <div class="kpi-header">
+              <span class="kpi-label">付费率</span>
+              <div class="kpi-icon paid">💳</div>
+            </div>
+            <div class="kpi-value">3.2%</div>
+            <div class="kpi-change down">
+              <span>↓</span>
+              <span>0.3%</span>
+            </div>
+          </div>
+          
+          <div class="kpi-card" id="kpi-retention">
+            <div class="kpi-header">
+              <span class="kpi-label">7日留存</span>
+              <div class="kpi-icon retention">🔄</div>
+            </div>
+            <div class="kpi-value">45.6%</div>
+            <div class="kpi-change up">
+              <span>↑</span>
+              <span>2.1%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 图表区域 -->
+        <div class="chart-section">
+          <div class="chart-card">
+            <div class="chart-header">
+              <span class="chart-title">24小时在线热力图</span>
+            </div>
+            <div id="heatmap-chart" class="chart-container"></div>
+          </div>
+          
+          <div class="chart-card">
+            <div class="chart-header">
+              <span class="chart-title">收入趋势（今日 vs 昨日）</span>
+              <div class="chart-actions">
+                <button class="chart-btn active" data-range="today">今日</button>
+                <button class="chart-btn" data-range="7days">7天</button>
+                <button class="chart-btn" data-range="30days">30天</button>
+              </div>
+            </div>
+            <div id="revenue-chart" class="chart-container"></div>
+          </div>
+          
+          <div class="chart-card">
+            <div class="chart-header">
+              <span class="chart-title">用户来源渠道</span>
+            </div>
+            <div id="channel-chart" class="chart-container"></div>
+          </div>
+          
+          <div class="chart-card">
+            <div class="chart-header">
+              <span class="chart-title">付费用户LTV曲线</span>
+            </div>
+            <div id="ltv-chart" class="chart-container"></div>
+          </div>
+        </div>
+
+        <!-- 转化漏斗 -->
+        <div class="funnel-section">
+          <div class="funnel-header">
+            <div class="funnel-title">用户旅程转化漏斗</div>
+            <div class="funnel-subtitle">从打开游戏到复购的完整转化路径</div>
+          </div>
+          
+          <div class="funnel-content">
+            <div id="user-journey-funnel" class="funnel-chart-container"></div>
+            <div class="funnel-insights" id="funnel-insights">
+              <!-- 动态生成 -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 用户分析 Tab -->
+      <div id="tab-users" class="tab-content">
+        <!-- 用户分群 -->
+        <div class="segment-grid">
+          <div class="segment-card high-value">
+            <div class="segment-header">
+              <span class="segment-name">高价值用户</span>
+              <span class="segment-badge">VIP</span>
+            </div>
+            <div class="segment-count">456</div>
+            <div class="segment-criteria">
+              <span>最近登录&lt;3天</span>
+              <span>付费&gt;500元</span>
+              <span>频次&gt;10次/周</span>
+            </div>
+            <div class="segment-metrics">
+              <div class="segment-metric">
+                <div class="segment-metric-value">85%</div>
+                <div class="segment-metric-label">留存率</div>
+              </div>
+              <div class="segment-metric">
+                <div class="segment-metric-value">¥680</div>
+                <div class="segment-metric-label">ARPU</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="segment-card potential">
+            <div class="segment-header">
+              <span class="segment-name">潜在付费用户</span>
+              <span class="segment-badge">转化中</span>
+            </div>
+            <div class="segment-count">1,234</div>
+            <div class="segment-criteria">
+              <span>游戏时长&gt;2小时</span>
+              <span>付费0元</span>
+              <span>活跃度高</span>
+            </div>
+            <div class="segment-metrics">
+              <div class="segment-metric">
+                <div class="segment-metric-value">15%</div>
+                <div class="segment-metric-label">转化率</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="segment-card churn-risk">
+            <div class="segment-header">
+              <span class="segment-name">流失预警用户</span>
+              <span class="segment-badge">⚠️</span>
+            </div>
+            <div class="segment-count">567</div>
+            <div class="segment-criteria">
+              <span>最近登录&gt;7天</span>
+              <span>历史付费&gt;100元</span>
+            </div>
+            <div class="segment-metrics">
+              <div class="segment-metric">
+                <div class="segment-metric-value" style="color: var(--danger-color)">高</div>
+                <div class="segment-metric-label">风险等级</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="segment-card new">
+            <div class="segment-header">
+              <span class="segment-name">新用户</span>
+              <span class="segment-badge">NEW</span>
+            </div>
+            <div class="segment-count">1,890</div>
+            <div class="segment-criteria">
+              <span>注册&lt;7天</span>
+              <span>游戏局数&lt;10</span>
+            </div>
+            <div class="segment-metrics">
+              <div class="segment-metric">
+                <div class="segment-metric-value">35%</div>
+                <div class="segment-metric-label">次日留存</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 付费预测 -->
+        <div class="chart-section">
+          <div class="chart-card full-width">
+            <div class="chart-header">
+              <span class="chart-title">AI付费预测模型 - 7日付费概率Top5</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+              <div class="prediction-card" style="padding: 20px; border-radius: 8px;">
+                <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">user_123</div>
+                <div class="prediction-probability">85%</div>
+                <div style="font-size: 13px; color: var(--success-color); margin-top: 8px;">💡 推送限时礼包</div>
+              </div>
+              
+              <div class="prediction-card" style="padding: 20px; border-radius: 8px;">
+                <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">user_def</div>
+                <div class="prediction-probability">92%</div>
+                <div style="font-size: 13px; color: var(--success-color); margin-top: 8px;">💡 推送VIP专属礼包</div>
+              </div>
+              
+              <div class="prediction-card" style="padding: 20px; border-radius: 8px;">
+                <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">user_456</div>
+                <div class="prediction-probability">65%</div>
+                <div style="font-size: 13px; color: var(--warning-color); margin-top: 8px;">💡 增加游戏时长引导</div>
+              </div>
+              
+              <div class="prediction-card" style="padding: 20px; border-radius: 8px;">
+                <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">user_789</div>
+                <div class="prediction-probability">45%</div>
+                <div style="font-size: 13px; color: var(--warning-color); margin-top: 8px;">💡 推送首充优惠</div>
+              </div>
+              
+              <div class="prediction-card" style="padding: 20px; border-radius: 8px;">
+                <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">user_abc</div>
+                <div class="prediction-probability">25%</div>
+                <div style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;">💡 提升游戏参与度</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 留存预测 -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">次日留存预警</span>
+          </div>
+          <div style="padding: 20px;">
+            <p style="color: var(--text-secondary); margin-bottom: 15px;">
+              AI模型识别出 <strong style="color: var(--danger-color)">4名</strong> 用户可能流失
+            </p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+              <span style="background: rgba(238, 102, 102, 0.2); color: var(--danger-color); padding: 5px 12px; border-radius: 4px; font-size: 13px;">user_789</span>
+              <span style="background: rgba(238, 102, 102, 0.2); color: var(--danger-color); padding: 5px 12px; border-radius: 4px; font-size: 13px;">user_abc</span>
+              <span style="background: rgba(238, 102, 102, 0.2); color: var(--danger-color); padding: 5px 12px; border-radius: 4px; font-size: 13px;">user_xyz</span>
+              <span style="background: rgba(238, 102, 102, 0.2); color: var(--danger-color); padding: 5px 12px; border-radius: 4px; font-size: 13px;">user_mno</span>
+            </div>
+            
+            <div style="background: rgba(145, 204, 117, 0.1); border-left: 3px solid var(--success-color); padding: 12px; border-radius: 0 8px 8px 0;">
+              <div style="font-size: 13px; color: var(--success-color); margin-bottom: 5px;">💡 干预建议</div>
+              <div style="font-size: 14px;">发送召回邮件 + 赠送回归礼包</div>
+              <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">预计挽回率: 35%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 收入分析 Tab -->
+      <div id="tab-revenue" class="tab-content">
+        <div class="chart-section">
+          <div class="chart-card full-width">
+            <div class="chart-header">
+              <span class="chart-title">实时收入监控</span>
+            </div>
+            <div id="realtime-revenue-chart" class="chart-container large"></div>
+          </div>
+          
+          <div class="chart-card">
+            <div class="chart-header">
+              <span class="chart-title">用户地理分布</span>
+            </div>
+            <div id="user-source-map" class="chart-container"></div>
+          </div>
+          
+          <div class="chart-card">
+            <div class="chart-header">
+              <span class="chart-title">关键指标仪表盘</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+              <div id="gauge-paidrate" style="height: 150px;"></div>
+              <div id="gauge-retention7d" style="height: 150px;"></div>
+              <div id="gauge-retention1d" style="height: 150px;"></div>
+              <div id="gauge-activity" style="height: 150px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 转化漏斗 Tab -->
+      <div id="tab-funnel" class="tab-content">
+        <div class="funnel-section">
+          <div class="funnel-header">
+            <div class="funnel-title">全链路转化漏斗</div>
+            <div class="funnel-subtitle">从曝光到复购的完整转化路径分析</div>
+          </div>
+          
+          <div class="funnel-content">
+            <div id="funnel-chart" class="funnel-chart-container"></div>
+            
+            <div class="funnel-insights">
+              <div class="insight-card">
+                <div class="insight-title">
+                  <span>❌</span>
+                  <span>注册流失率 55%</span>
+                </div>
+                <div class="insight-content">高于行业平均水平的注册流失</div>
+                <div class="insight-suggestion">
+                  <span>💡</span>
+                  <span>建议：简化注册流程，支持一键登录</span>
+                </div>
+              </div>
+              
+              <div class="insight-card">
+                <div class="insight-title">
+                  <span>❌</span>
+                  <span>首付费流失率 73%</span>
+                </div>
+                <div class="insight-content">首次付费转化存在严重瓶颈</div>
+                <div class="insight-suggestion">
+                  <span>💡</span>
+                  <span>建议：增加首充优惠，降低付费门槛</span>
+                </div>
+              </div>
+              
+              <div class="insight-card warning">
+                <div class="insight-title">
+                  <span>⚠️</span>
+                  <span>新手引导流失率 40%</span>
+                </div>
+                <div class="insight-content">行业平均25%，存在优化空间</div>
+                <div class="insight-suggestion">
+                  <span>💡</span>
+                  <span>建议：优化新手体验，减少强制引导</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 游戏平衡 Tab -->
+      <div id="tab-balance" class="tab-content">
+        <div class="difficulty-section">
+          <div class="chart-header">
+            <span class="chart-title">关卡难度分析</span>
+          </div>
+          
+          <div class="difficulty-grid">
+            <div id="difficulty-chart" class="difficulty-chart"></div>
+            
+            <div class="difficulty-list">
+              <div class="difficulty-item">
+                <span class="difficulty-level">第3层</span>
+                <div class="difficulty-bar">
+                  <div class="difficulty-bar-fill high" style="width: 95%"></div>
+                </div>
+                <span class="difficulty-value">95%</span>
+                <span class="difficulty-status normal">正常</span>
+              </div>
+              
+              <div class="difficulty-item">
+                <span class="difficulty-level">第7层</span>
+                <div class="difficulty-bar">
+                  <div class="difficulty-bar-fill medium" style="width: 45%"></div>
+                </div>
+                <span class="difficulty-value">45%</span>
+                <span class="difficulty-status warning">⚠️偏难</span>
+              </div>
+              
+              <div class="difficulty-item">
+                <span class="difficulty-level">第12层</span>
+                <div class="difficulty-bar">
+                  <div class="difficulty-bar-fill low" style="width: 15%"></div>
+                </div>
+                <span class="difficulty-value">15%</span>
+                <span class="difficulty-status danger">⚠️过难</span>
+              </div>
+              
+              <div style="background: rgba(238, 102, 102, 0.1); border-radius: 8px; padding: 15px; margin-top: 15px;">
+                <div style="font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--danger-color);">⚠️ 重点关注</div>
+                <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                  <div>• 第7层：降低守卫牌强度</div>
+                  <div>• 第8层：调整敌人配置</div>
+                  <div>• 第12层：增加激励视频复活</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 运营日报 Tab -->
+      <div id="tab-report" class="tab-content">
+        <div class="report-section">
+          <div class="report-header">
+            <div class="report-title">📊 命运塔运营日报</div>
+            <div class="report-date">2026-03-08</div>
+          </div>
+          
+          <div class="report-content">
+            <!-- 核心指标 -->
+            <div class="report-block">
+              <div class="report-block-title">
+                <span>📈</span>
+                <span>核心指标</span>
+              </div>
+              
+              <div class="report-metrics">
+                <div class="report-metric" id="report-dau">
+                  <div class="report-metric-value up">5,678</div>
+                  <div class="report-metric-label">DAU</div>
+                  <div class="report-metric-change up">+12%</div>
+                </div>
+                
+                <div class="report-metric" id="report-revenue">
+                  <div class="report-metric-value up">¥12,580</div>
+                  <div class="report-metric-label">收入</div>
+                  <div class="report-metric-change up">+8%</div>
+                </div>
+                
+                <div class="report-metric" id="report-newusers">
+                  <div class="report-metric-value up">234</div>
+                  <div class="report-metric-label">新增</div>
+                  <div class="report-metric-change up">+5%</div>
+                </div>
+                
+                <div class="report-metric" id="report-paidrate">
+                  <div class="report-metric-value down">3.2%</div>
+                  <div class="report-metric-label">付费率</div>
+                  <div class="report-metric-change down">-0.3%</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 智能发现 -->
+            <div class="report-block">
+              <div class="report-block-title">
+                <span>🔍</span>
+                <span>智能发现</span>
+              </div>
+              
+              <div class="report-list">
+                <div class="report-item">
+                  <span class="report-item-icon">🔴</span>
+                  <div class="report-item-content">
+                    <div class="report-item-title">异常：第7层通关率骤降</div>
+                    <div class="report-item-detail">45%→25%，守卫激怒牌组合过于强大</div>
+                    <div class="report-item-suggestion">建议：调整第7层激怒牌配置</div>
+                  </div>
+                </div>
+                
+                <div class="report-item">
+                  <span class="report-item-icon">🟡</span>
+                  <div class="report-item-content">
+                    <div class="report-item-title">机会：新用户次日留存提升空间大</div>
+                    <div class="report-item-detail">当前35%，目标50%</div>
+                    <div class="report-item-suggestion">建议：优化首登奖励，增加新手保护期</div>
+                  </div>
+                </div>
+                
+                <div class="report-item">
+                  <span class="report-item-icon">🟢</span>
+                  <div class="report-item-content">
+                    <div class="report-item-title">亮点：连胜赛模式参与度高</div>
+                    <div class="report-item-detail">占活跃用户40%</div>
+                    <div class="report-item-suggestion">建议：增加连胜赛奖励，延长用户生命周期</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 自动触达任务 -->
+            <div class="report-block">
+              <div class="report-block-title">
+                <span>📢</span>
+                <span>自动触达任务</span>
+              </div>
+              
+              <div class="task-list">
+                <div class="task-item">
+                  <span class="task-type">推送</span>
+                  <span class="task-target">向23名"潜在付费用户"推送首充礼包</span>
+                  <span class="task-action">预计转化 5-8%</span>
+                </div>
+                
+                <div class="task-item">
+                  <span class="task-type">邮件</span>
+                  <span class="task-target">向156名"流失预警用户"发送召回邮件</span>
+                  <span class="task-action">预计召回 10-15%</span>
+                </div>
+                
+                <div class="task-item">
+                  <span class="task-type">活动</span>
+                  <span class="task-target">向VIP5以上用户推送专属活动</span>
+                  <span class="task-action">预计参与 30-40%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- A/B测试建议 -->
+            <div class="report-block">
+              <div class="report-block-title">
+                <span>🧪</span>
+                <span>A/B测试建议</span>
+              </div>
+              
+              <div class="report-list">
+                <div class="report-item">
+                  <span class="report-item-icon">🧪</span>
+                  <div class="report-item-content">
+                    <div class="report-item-title">测试首充礼包价格</div>
+                    <div style="display: flex; gap: 10px; margin-top: 8px;">
+                      <span style="background: rgba(84, 112, 198, 0.2); color: var(--primary-color); padding: 4px 12px; border-radius: 4px; font-size: 13px;">¥6</span>
+                      <span style="color: var(--text-secondary);">vs</span>
+                      <span style="background: rgba(145, 204, 117, 0.2); color: var(--success-color); padding: 4px 12px; border-radius: 4px; font-size: 13px;">¥12</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="report-item">
+                  <span class="report-item-icon">🧪</span>
+                  <div class="report-item-content">
+                    <div class="report-item-title">测试新手引导时长</div>
+                    <div style="display: flex; gap: 10px; margin-top: 8px;">
+                      <span style="background: rgba(84, 112, 198, 0.2); color: var(--primary-color); padding: 4px 12px; border-radius: 4px; font-size: 13px;">3分钟</span>
+                      <span style="color: var(--text-secondary);">vs</span>
+                      <span style="background: rgba(145, 204, 117, 0.2); color: var(--success-color); padding: 4px 12px; border-radius: 4px; font-size: 13px;">5分钟</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- 数据文件 -->
+  <script src="data/mock-data.js"></script>
+  
+  <!-- 核心模块 -->
+  <script src="js/analytics-core.js"></script>
+  <script src="js/funnel-chart.js"></script>
+  <script src="js/realtime-chart.js"></script>
+  <script src="js/insights-engine.js"></script>
+  
+  <script>
+    // 全局变量
+    let dashboard;
+    let funnelAnalyzer;
+    let realtimeCharts;
+    let insightsEngine;
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      // 初始化看板
+      dashboard = new AnalyticsDashboard();
+      
+      // 初始化漏斗分析
+      funnelAnalyzer = initFunnelAnalysis(MockData);
+      
+      // 初始化实时图表
+      realtimeCharts = initRealtimeCharts(MockData);
+      
+      // 初始化智能建议引擎
+      insightsEngine = initInsightsEngine(MockData);
+      
+      // 渲染运营日报
+      insightsEngine.renderDailyReport('report-content');
+      
+      console.log('命运塔数据分析看板已加载完成');
+      console.log('智能分析报告:', insightsEngine.generateInsightsReport());
+    });
+
+    // 切换Tab
+    function switchTab(tabName) {
+      // 更新导航状态
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+      });
+      event.target.closest('.nav-link').classList.add('active');
+      
+      // 更新页面标题
+      const titles = {
+        'overview': '数据概览',
+        'users': '用户分析',
+        'revenue': '收入分析',
+        'funnel': '转化漏斗',
+        'balance': '游戏平衡',
+        'report': '运营日报'
+      };
+      document.querySelector('.page-title').textContent = titles[tabName];
+      
+      // 切换内容
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.getElementById('tab-' + tabName).classList.add('active');
+      
+      // 重绘图表
+      setTimeout(() => {
+        if (dashboard) dashboard.resize();
+        if (funnelAnalyzer) funnelAnalyzer.resize();
+        if (realtimeCharts) realtimeCharts.resize();
+      }, 100);
+    }
+
+    // 刷新数据
+    function refreshDashboard() {
+      if (dashboard) {
+        dashboard.refreshData();
+      }
+    }
+
+    // 切换时间范围
+    function switchTimeRange(range) {
+      if (dashboard) {
+        dashboard.switchTimeRange(range);
+      }
+    }
+
+    // 窗口大小改变时重绘图表
+    window.addEventListener('resize', function() {
+      if (dashboard) dashboard.resize();
+      if (funnelAnalyzer) funnelAnalyzer.resize();
+      if (realtimeCharts) realtimeCharts.resize();
+    });
+  </script>
+</body>
+</html>
