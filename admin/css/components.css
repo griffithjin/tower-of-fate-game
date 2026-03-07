@@ -1,0 +1,352 @@
+/* 弹窗样式 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal {
+    background: var(--bg-card);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow: hidden;
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.3s;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-gold);
+}
+
+.modal-overlay.show .modal {
+    transform: scale(1) translateY(0);
+}
+
+.modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    font-size: 18px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 24px;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.modal-close:hover { color: var(--danger); }
+
+.modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    max-height: calc(90vh - 140px);
+}
+
+.modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* 表单样式 */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text);
+    font-size: 14px;
+}
+
+.form-group label .required {
+    color: var(--danger);
+    margin-left: 4px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-group .hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 5px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* 图片上传区域 */
+.upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.upload-zone:hover,
+.upload-zone.dragover {
+    border-color: var(--primary);
+    background: rgba(255, 215, 0, 0.05);
+}
+
+.upload-zone-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.upload-zone-text {
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+.upload-zone-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.upload-preview {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.upload-preview-item {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid var(--border);
+}
+
+.upload-preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.upload-preview-item .remove {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    background: var(--danger);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 图片预览卡片 */
+.preview-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.preview-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-gold);
+}
+
+.preview-card-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.preview-card-body {
+    padding: 15px;
+}
+
+.preview-card-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.preview-card-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+}
+
+.preview-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+/* 批量导入 */
+.batch-import-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 60px 40px;
+    text-align: center;
+}
+
+.batch-import-zone.dragover {
+    border-color: var(--primary);
+    background: rgba(255, 215, 0, 0.05);
+}
+
+.batch-import-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.batch-import-title {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.batch-import-hint {
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+.batch-import-formats {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.format-badge {
+    padding: 8px 16px;
+    background: var(--bg-dark);
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+/* 导入预览 */
+.import-preview {
+    margin-top: 20px;
+}
+
+.import-preview-title {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: var(--primary);
+}
+
+.import-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.import-preview-table th,
+.import-preview-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.import-preview-table th {
+    background: rgba(255, 215, 0, 0.1);
+    color: var(--primary);
+}
+
+.import-status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+}
+
+.import-status-valid { background: var(--success); color: #000; }
+.import-status-invalid { background: var(--danger); color: #fff; }
+
+/* 大图片预览 */
+.image-preview-modal img {
+    max-width: 100%;
+    max-height: 70vh;
+    border-radius: 8px;
+}
+
+/* 确认弹窗 */
+.confirm-modal .modal-body {
+    text-align: center;
+    padding: 40px;
+}
+
+.confirm-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.confirm-text {
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.confirm-hint {
+    color: var(--text-muted);
+    font-size: 14px;
+}

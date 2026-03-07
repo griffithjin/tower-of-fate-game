@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>命运塔 - 资产管理系统</title>
+    <link rel="stylesheet" href="css/asset-manager.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+        <div class="logo">
+            🏰 命运塔管理
+            <span>资产管理系统</span>
+        </div>
+        
+        <nav>
+            <div class="nav-section">
+                <div class="nav-section-title">资产模块</div>
+                <div class="nav-item active" data-module="towers">
+                    <span class="nav-icon">🗼</span> 塔模型管理
+                </div>
+                <div class="nav-item" data-module="avatars">
+                    <span class="nav-icon">🎭</span> 头像管理
+                </div>
+                <div class="nav-item" data-module="items">
+                    <span class="nav-icon">🎒</span> 道具管理
+                </div>
+                <div class="nav-item" data-module="shop">
+                    <span class="nav-icon">🛒</span> 商城商品
+                </div>
+                <div class="nav-item" data-module="tournaments">
+                    <span class="nav-icon">🏆</span> 锦标赛配置
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">用户管理</div>
+                <div class="nav-item" data-module="points">
+                    <span class="nav-icon">📊</span> 积分管理
+                </div>
+                <div class="nav-item" data-module="titles">
+                    <span class="nav-icon">👑</span> 荣誉称号
+                </div>
+                <div class="nav-item" data-module="users">
+                    <span class="nav-icon">👤</span> 用户数据
+                </div>
+                <div class="nav-item" data-module="postcards">
+                    <span class="nav-icon">🎑</span> 明信片管理
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">系统</div>
+                <div class="nav-item" data-module="settings">
+                    <span class="nav-icon">⚙️</span> 系统设置
+                </div>
+                <div class="nav-item" onclick="assetManager.showLogs()">
+                    <span class="nav-icon">📋</span> 操作日志
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <!-- 顶部栏 -->
+        <header class="top-bar">
+            <h1 class="page-title">
+                <span id="page-icon">🗼</span>
+                <span id="page-title">塔模型管理</span>
+            </h1>
+            <div class="admin-info">
+                <span class="status-badge">在线</span>
+                <span class="admin-name" id="admin-name">超级管理员</span>
+                <span class="permission-badge permission-admin" id="admin-role">ADMIN</span>
+                <button class="logout-btn" onclick="assetManager.logout()">退出</button>
+            </div>
+        </header>
+
+        <!-- ===== 塔模型管理模块 ===== -->
+        <section class="module-content active" id="module-towers">
+            <div class="action-bar">
+                <div>
+                    <button class="btn btn-primary" onclick="towerManager.showUploadModal()">
+                        <span>➕</span> 上传新塔
+                    </button>
+                    <button class="btn btn-secondary" onclick="batchImport.show('towers')">
+                        <span>📥</span> 批量导入
+                    </button>
+                    <button class="btn btn-secondary" onclick="towerManager.exportData()">
+                        <span>📤</span> 导出数据
+                    </button>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>大洲:</label>
+                        <select id="tower-continent-filter" onchange="towerManager.filter()">
+                            <option value="">全部</option>
+                            <option value="asia">亚洲</option>
+                            <option value="europe">欧洲</option>
+                            <option value="americas">美洲</option>
+                            <option value="africa">非洲</option>
+                            <option value="oceania">大洋洲</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>难度:</label>
+                        <select id="tower-difficulty-filter" onchange="towerManager.filter()">
+                            <option value="">全部</option>
+                            <option value="easy">简单</option>
+                            <option value="medium">中等</option>
+                            <option value="hard">困难</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>状态:</label>
+                        <select id="tower-status-filter" onchange="towerManager.filter()">
+                            <option value="">全部</option>
+                            <option value="active">启用</option>
+                            <option value="inactive">禁用</option>
+                        </select>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="tower-search" placeholder="搜索塔名称..." onkeyup="towerManager.search()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table-container">
+                <table class="data-table" id="tower-table">
+                    <thead>
+                        <tr>
+                            <th width="50"><input type="checkbox" id="tower-select-all"></th>
+                            <th>预览</th>
+                            <th>名称</th>
+                            <th>国家</th>
+                            <th>大洲</th>
+                            <th>难度</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tower-list">
+                        <!-- 动态加载 -->
+                    </tbody>
+                </table>
+                <div class="pagination" id="tower-pagination">
+                    <!-- 动态加载 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== 头像管理模块 ===== -->
+        <section class="module-content" id="module-avatars">
+            <div class="action-bar">
+                <div>
+                    <button class="btn btn-primary" onclick="avatarManager.showUploadModal()">
+                        <span>➕</span> 上传头像
+                    </button>
+                    <button class="btn btn-secondary" onclick="batchImport.show('avatars')">
+                        <span>📥</span> 批量导入
+                    </button>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>分类:</label>
+                        <select id="avatar-category-filter" onchange="avatarManager.filter()">
+                            <option value="">全部</option>
+                            <option value="animal">动物</option>
+                            <option value="character">角色</option>
+                            <option value="symbol">符号</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>稀有度:</label>
+                        <select id="avatar-rarity-filter" onchange="avatarManager.filter()">
+                            <option value="">全部</option>
+                            <option value="common">普通</option>
+                            <option value="rare">稀有</option>
+                            <option value="epic">史诗</option>
+                            <option value="legendary">传说</option>
+                        </select>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="avatar-search" placeholder="搜索头像..." onkeyup="avatarManager.search()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table-container">
+                <table class="data-table" id="avatar-table">
+                    <thead>
+                        <tr>
+                            <th width="50"><input type="checkbox" id="avatar-select-all"></th>
+                            <th>预览</th>
+                            <th>名称</th>
+                            <th>分类</th>
+                            <th>稀有度</th>
+                            <th>价格</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="avatar-list">
+                        <!-- 动态加载 -->
+                    </tbody>
+                </table>
+                <div class="pagination" id="avatar-pagination"></div>
+            </div>
+        </section>
+
+        <!-- ===== 道具管理模块 ===== -->
+        <section class="module-content" id="module-items">
+            <div class="action-bar">
+                <div>
+                    <button class="btn btn-primary" onclick="itemManager.showCreateModal()">
+                        <span>➕</span> 新建道具
+                    </button>
+                    <button class="btn btn-secondary" onclick="batchImport.show('items')">
+                        <span>📥</span> 批量导入
+                    </button>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>类型:</label>
+                        <select id="item-type-filter" onchange="itemManager.filter()">
+                            <option value="">全部</option>
+                            <option value="consumable">消耗品</option>
+                            <option value="boost">增益道具</option>
+                            <option value="special">特殊道具</option>
+                        </select>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="item-search" placeholder="搜索道具..." onkeyup="itemManager.search()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table-container">
+                <table class="data-table" id="item-table">
+                    <thead>
+                        <tr>
+                            <th width="50"><input type="checkbox" id="item-select-all"></th>
+                            <th>图标</th>
+                            <th>名称</th>
+                            <th>类型</th>
+                            <th>效果</th>
+                            <th>价格</th>
+                            <th>可叠加</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="item-list">
+                        <!-- 动态加载 -->
+                    </tbody>
+                </table>
+                <div class="pagination" id="item-pagination"></div>
+            </div>
+        </section>
+
+        <!-- ===== 商城管理模块 ===== -->
+        <section class="module-content" id="module-shop">
+            <div class="action-bar">
+                <div>
+                    <button class="btn btn-primary" onclick="shopManager.showCreateModal()">
+                        <span>➕</span> 新增商品
+                    </button>
+                    <button class="btn btn-secondary" onclick="batchImport.show('shop')">
+                        <span>📥</span> 批量导入
+                    </button>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>分类:</label>
+                        <select id="shop-category-filter" onchange="shopManager.filter()">
+                            <option value="">全部</option>
+                            <option value="skin">皮肤</option>
+                            <option value="pack">礼包</option>
+                            <option value="currency">货币</option>
+                        </select>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="shop-search" placeholder="搜索商品..." onkeyup="shopManager.search()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table-container">
+                <table class="data-table" id="shop-table">
+                    <thead>
+                        <tr>
+                            <th width="50"><input type="checkbox" id="shop-select-all"></th>
+                            <th>预览</th>
+                            <th>名称</th>
+                            <th>分类</th>
+                            <th>原价</th>
+                            <th>折扣</th>
+                            <th>现价</th>
+                            <th>限时</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="shop-list">
+                        <!-- 动态加载 -->
+                    </tbody>
+                </table>
+                <div class="pagination" id="shop-pagination"></div>
+            </div>
+        </section>
+
+        <!-- ===== 锦标赛管理模块 ===== -->
+        <section class="module-content" id="module-tournaments">
+            <div class="action-bar">
+                <div>
+                    <button class="btn btn-primary" onclick="tournamentManager.showCreateModal()">
+                        <span>➕</span> 新建锦标赛
+                    </button>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>状态:</label>
+                        <select id="tournament-status-filter" onchange="tournamentManager.filter()">
+                            <option value="">全部</option>
+                            <option value="upcoming">即将开始</option>
+                            <option value="ongoing">进行中</option>
+                            <option value="ended">已结束</option>
+                        </select>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="tournament-search" placeholder="搜索锦标赛..." onkeyup="tournamentManager.search()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table-container">
+                <table class="data-table" id="tournament-table">
+                    <thead>
+                        <tr>
+                            <th>名称</th>
+                            <th>国家/地区</th>
+                            <th>开始时间</th>
+                            <th>结束时间</th>
+                            <th>人数限制</th>
+                            <th>冠军奖励</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tournament-list">
+                        <!-- 动态加载 -->
+                    </tbody>
+                </table>
+                <div class="pagination" id="tournament-pagination"></div>
+            </div>
+        </section>
+
+        <!-- ===== 积分管理模块 ===== -->
+        <section class="module-content" id="module-points">
+            <div class="action-bar">
+                <div>
+                    <button class="btn btn-primary" onclick="pointsManager.showAdjustModal()">
+                        <span>⚡</span> 调整积分
+                    </button>
+                    <button class="btn btn-secondary" onclick="pointsManager.showRulesModal()">
+                        <span>📋</span> 积分规则
+                    </button>
+                    <button class="btn btn-danger" onclick="pointsManager.showResetModal()">
+                        <span>🔄</span> 赛季清零
+                    </button>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>排序:</label>
+                        <select id="points-sort" onchange="pointsManager.filter()">
+                            <option value="rank">按排名</option>
+                            <option value="points_desc">积分高→低</option>
+                            <option value="points_asc">积分低→高</option>
+                        </select>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="points-search" placeholder="搜索用户ID/昵称..." onkeyup="pointsManager.search()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table-container">
+                <table class="data-table" id="points-table">
+                    <thead>
+                        <tr>
+                            <th>排名</th>
+                            <th>用户ID</th>
+                            <th>昵称</th>
+                            <th>当前积分</th>
+                            <th>本赛季积分</th>
+                            <th>历史最高</th>
+                            <th>兑换记录</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="points-list"></tbody>
+                </table>
+                <div class="pagination" id="points-pagination"></div>
+            </div>
+        </section>
+
+        <!-- ===== 荣誉称号管理模块 ===== -->
+        <section class="module-content" id="module-titles">
+            <div class="action-bar">
+                <div>
+                    <button class="btn btn-primary" onclick="titleManager.showCreateModal()">
+                        <span>➕</span> 新建称号
+                    </button>
+                    <button class="btn btn-secondary" onclick="titleManager.showGrantModal()">
+                        <span>🎁</span> 授予称号
+                    </button>
+                    <button class="btn btn-info" onclick="titleManager.showConditionsModal()">
+                        <span>⚙️</span> 获取条件
+                    </button>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>类型:</label>
+                        <select id="title-type-filter" onchange="titleManager.filter()">
+                            <option value="">全部</option>
+                            <option value="permanent">永久称号</option>
+                            <option value="limited">限时称号</option>
+                            <option value="event">活动称号</option>
+                        </select>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="title-search" placeholder="搜索称号..." onkeyup="titleManager.search()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table-container">
+                <table class="data-table" id="title-table">
+                    <thead>
+                        <tr>
+                            <th>称号图标</th>
+                            <th>称号名称</th>
+                            <th>类型</th>
+                            <th>持有用户数</th>
+                            <th>获取条件</th>
+                            <th>有效期</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="title-list"></tbody>
+                </table>
+                <div class="pagination" id="title-pagination"></div>
+            </div>
+        </section>
+
+        <!-- ===== 用户数据管理模块 ===== -->
+        <section class="module-content" id="module-users">
+            <div class="action-bar">
+                <div>
+                    <button class="btn btn-primary" onclick="userManager.showSearchModal()">
+                        <span>🔍</span> 查找用户
+                    </button>
+                    <button class="btn btn-secondary" onclick="batchImport.show('users')">
+                        <span>📥</span> 批量操作
+                    </button>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>状态:</label>
+                        <select id="user-status-filter" onchange="userManager.filter()">
+                            <option value="">全部</option>
+                            <option value="active">正常</option>
+                            <option value="banned">已封禁</option>
+                            <option value="inactive">未激活</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>注册时间:</label>
+                        <select id="user-time-filter" onchange="userManager.filter()">
+                            <option value="">全部</option>
+                            <option value="today">今天</option>
+                            <option value="week">本周</option>
+                            <option value="month">本月</option>
+                        </select>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="user-search" placeholder="搜索用户ID/昵称/手机..." onkeyup="userManager.search()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table-container">
+                <table class="data-table" id="user-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="user-select-all"></th>
+                            <th>用户ID</th>
+                            <th>昵称</th>
+                            <th>金币</th>
+                            <th>钻石</th>
+                            <th>背包物品</th>
+                            <th>游戏场次</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-list"></tbody>
+                </table>
+                <div class="pagination" id="user-pagination"></div>
+            </div>
+        </section>
+
+        <!-- ===== 明信片管理模块 ===== -->
+        <section class="module-content" id="module-postcards">
+            <div class="action-bar">
+                <div>
+                    <button class="btn btn-primary" onclick="postcardManager.showCreateModal()">
+                        <span>➕</span> 新建明信片
+                    </button>
+                    <button class="btn btn-secondary" onclick="postcardManager.showSendModal()">
+                        <span>📮</span> 发放明信片
+                    </button>
+                    <button class="btn btn-info" onclick="postcardManager.showActivityModal()">
+                        <span>🎯</span> 活动配置
+                    </button>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>系列:</label>
+                        <select id="postcard-series-filter" onchange="postcardManager.filter()">
+                            <option value="">全部</option>
+                            <option value="asia">亚洲系列</option>
+                            <option value="europe">欧洲系列</option>
+                            <option value="americas">美洲系列</option>
+                            <option value="special">特别版</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>稀有度:</label>
+                        <select id="postcard-rarity-filter" onchange="postcardManager.filter()">
+                            <option value="">全部</option>
+                            <option value="common">普通</option>
+                            <option value="rare">稀有</option>
+                            <option value="legendary">传说</option>
+                        </select>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="postcard-search" placeholder="搜索明信片..." onkeyup="postcardManager.search()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table-container">
+                <table class="data-table" id="postcard-table">
+                    <thead>
+                        <tr>
+                            <th>预览</th>
+                            <th>名称</th>
+                            <th>系列</th>
+                            <th>稀有度</th>
+                            <th>收藏数</th>
+                            <th>发放方式</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="postcard-list"></tbody>
+                </table>
+                <div class="pagination" id="postcard-pagination"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 弹窗容器 -->
+    <div id="modal-container"></div>
+
+    <!-- 通知容器 -->
+    <div id="notification-container"></div>
+
+    <!-- 加载脚本 -->
+    <script src="components/upload-modal.js"></script>
+    <script src="components/batch-import.js"></script>
+    <script src="js/tower-manager.js"></script>
+    <script src="js/avatar-manager.js"></script>
+    <script src="js/item-manager.js"></script>
+    <script src="js/shop-manager.js"></script>
+    <script src="js/tournament-manager.js"></script>
+    <script src="js/points-manager.js"></script>
+    <script src="js/title-manager.js"></script>
+    <script src="js/user-manager.js"></script>
+    <script src="js/postcard-manager.js"></script>
+    <script src="js/asset-manager.js"></script>
+</body>
+</html>
