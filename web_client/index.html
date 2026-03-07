@@ -57,6 +57,10 @@
             transition: all 0.5s;
         }
         
+        .login-screen.hidden {
+            display: none !important;
+        }
+        
         .login-screen.theme-cyber {
             background: linear-gradient(180deg, #000 0%, #1a0a3e 50%, #0d0033 100%);
         }
@@ -129,6 +133,137 @@
             align-items: flex-end;
             padding-bottom: 10px;
             transition: all 0.5s ease;
+        }
+
+        /* 塔楼背景装饰 */
+        .tower-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(2px 2px at 20% 30%, rgba(255,215,0,0.3), transparent),
+                radial-gradient(2px 2px at 40% 20%, rgba(255,215,0,0.2), transparent),
+                radial-gradient(1px 1px at 60% 40%, rgba(255,255,255,0.3), transparent),
+                radial-gradient(2px 2px at 80% 25%, rgba(255,215,0,0.25), transparent),
+                radial-gradient(1px 1px at 15% 60%, rgba(255,255,255,0.2), transparent),
+                radial-gradient(2px 2px at 85% 70%, rgba(255,215,0,0.2), transparent);
+            z-index: 0;
+            animation: twinkle 4s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0.4; }
+        }
+
+        /* 云朵装饰 */
+        .cloud-decoration {
+            position: absolute;
+            background: radial-gradient(ellipse at center, rgba(255,255,255,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+            animation: float-cloud 20s ease-in-out infinite;
+        }
+
+        .cloud-decoration.cloud-1 {
+            width: 150px;
+            height: 60px;
+            top: 10%;
+            left: 5%;
+            animation-delay: 0s;
+        }
+
+        .cloud-decoration.cloud-2 {
+            width: 120px;
+            height: 50px;
+            top: 20%;
+            right: 8%;
+            animation-delay: -7s;
+        }
+
+        .cloud-decoration.cloud-3 {
+            width: 100px;
+            height: 40px;
+            top: 35%;
+            left: 15%;
+            animation-delay: -14s;
+        }
+
+        @keyframes float-cloud {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(10px) translateY(-5px); }
+            50% { transform: translateX(-5px) translateY(5px); }
+            75% { transform: translateX(15px) translateY(-3px); }
+        }
+
+        /* 两侧装饰塔 */
+        .tower-decoration {
+            position: absolute;
+            width: 100px;
+            height: 280px;
+            opacity: 0.35;
+            z-index: 1;
+            pointer-events: none;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center bottom;
+            filter: drop-shadow(0 0 10px rgba(255,215,0,0.3));
+            animation: float-tower 6s ease-in-out infinite;
+        }
+
+        .tower-decoration.left {
+            left: 3%;
+            bottom: 5%;
+            transform: scale(0.7);
+            animation-delay: 0s;
+        }
+
+        .tower-decoration.right {
+            right: 3%;
+            bottom: 8%;
+            transform: scale(0.6) scaleX(-1);
+            animation-delay: 3s;
+        }
+
+        @keyframes float-tower {
+            0%, 100% { transform: translateY(0) scale(0.7); }
+            50% { transform: translateY(-8px) scale(0.7); }
+        }
+
+        .tower-decoration.right {
+            animation-name: float-tower-right;
+        }
+
+        @keyframes float-tower-right {
+            0%, 100% { transform: translateY(0) scale(0.6) scaleX(-1); }
+            50% { transform: translateY(-8px) scale(0.6) scaleX(-1); }
+        }
+
+        /* 装饰塔使用CSS绘制 */
+        .tower-decoration::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 40px solid transparent;
+            border-right: 40px solid transparent;
+            border-bottom: 200px solid rgba(255,215,0,0.15);
+        }
+
+        .tower-decoration::after {
+            content: '🏰';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 36px;
+            filter: drop-shadow(0 0 8px rgba(255,215,0,0.5));
         }
         
         .tower-section.with-background {
@@ -375,7 +510,25 @@
             display: flex;
             gap: 8px;
             justify-content: center;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 10px 5px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,215,0,0.5) rgba(0,0,0,0.2);
+        }
+        
+        .hand-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        
+        .hand-container::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 3px;
+        }
+        
+        .hand-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(90deg, rgba(255,215,0,0.6), rgba(255,165,0,0.6));
+            border-radius: 3px;
         }
         
         .card-item {
@@ -488,6 +641,22 @@
             overflow-y: auto;
             margin-bottom: 10px;
             font-size: 13px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,215,0,0.5) rgba(0,0,0,0.2);
+        }
+        
+        .chat-section::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-section::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 3px;
+        }
+        
+        .chat-section::-webkit-scrollbar-thumb {
+            background: rgba(255,215,0,0.5);
+            border-radius: 3px;
         }
         
         .chat-message {
@@ -512,6 +681,53 @@
             border: 1px solid rgba(255,215,0,0.3);
             background: rgba(0,0,0,0.3);
             color: #fff;
+        }
+        
+        /* ==================== 滚动条美化样式 ==================== */
+        .scrollable-area {
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,215,0,0.5) rgba(0,0,0,0.2);
+        }
+        
+        .scrollable-area::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .scrollable-area::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+        
+        .scrollable-area::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(255,215,0,0.6), rgba(255,165,0,0.6));
+            border-radius: 4px;
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+        
+        .scrollable-area::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, rgba(255,215,0,0.8), rgba(255,165,0,0.8));
+        }
+        
+        /* 横向滚动 */
+        .scrollable-horizontal {
+            overflow-x: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,215,0,0.5) rgba(0,0,0,0.2);
+        }
+        
+        .scrollable-horizontal::-webkit-scrollbar {
+            height: 6px;
+        }
+        
+        .scrollable-horizontal::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 3px;
+        }
+        
+        .scrollable-horizontal::-webkit-scrollbar-thumb {
+            background: linear-gradient(90deg, rgba(255,215,0,0.6), rgba(255,165,0,0.6));
+            border-radius: 3px;
         }
         
         /* 弹窗 */
@@ -655,6 +871,53 @@
                 border-bottom: 280px solid rgba(255,215,0,0.1);
             }
             .tower-levels { width: 240px; height: 280px; }
+            
+            /* 移动端装饰塔调整 */
+            .tower-decoration {
+                width: 60px;
+                height: 180px;
+                opacity: 0.25;
+            }
+            
+            .tower-decoration::before {
+                border-left: 25px solid transparent;
+                border-right: 25px solid transparent;
+                border-bottom: 130px solid rgba(255,215,0,0.12);
+            }
+            
+            .tower-decoration::after {
+                font-size: 24px;
+            }
+            
+            .tower-decoration.left {
+                left: 2%;
+                bottom: 3%;
+            }
+            
+            .tower-decoration.right {
+                right: 2%;
+                bottom: 5%;
+            }
+            
+            /* 移动端云朵调整 */
+            .cloud-decoration {
+                opacity: 0.5;
+            }
+            
+            .cloud-decoration.cloud-1 {
+                width: 80px;
+                height: 35px;
+            }
+            
+            .cloud-decoration.cloud-2 {
+                width: 60px;
+                height: 28px;
+            }
+            
+            .cloud-decoration.cloud-3 {
+                width: 50px;
+                height: 22px;
+            }
         }
     </style>
 </head>
@@ -680,6 +943,7 @@
                 <button class="btn btn-primary" id="btnQuickMatchSolo">⚡ 快速匹配-个人</button>
                 <button class="btn btn-primary" id="btnQuickMatchTeam">⚡ 快速匹配-团队</button>
                 <button class="btn btn-primary" id="btnCreateRoom">🏠 创建房间</button>
+                <button class="btn btn-secondary" id="btnPreview" onclick="enterPreviewMode()">👁️ 预览布局</button>
             </div>
             
             <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
@@ -701,6 +965,15 @@
         <div class="game-screen" id="gameScreen">
             <!-- 塔楼 -->
             <div class="tower-section" id="towerSection">
+                <!-- 背景星星 -->
+                <div class="cloud-decoration cloud-1"></div>
+                <div class="cloud-decoration cloud-2"></div>
+                <div class="cloud-decoration cloud-3"></div>
+                
+                <!-- 两侧装饰塔 -->
+                <div class="tower-decoration left" title="东方之塔"></div>
+                <div class="tower-decoration right" title="西方之塔"></div>
+                
                 <div class="tower-triangle">
                     <div class="tower-top">🏆</div>
                 </div>
@@ -825,15 +1098,19 @@
     
     <!-- 商城弹窗 -->
     <div class="overlay" id="shopOverlay">
-        <div class="overlay-content" style="max-width: 700px;">
+        <div class="overlay-content scrollable-area" style="max-width: 700px; max-height: 85vh;">
             <h2>🛍️ 道具商城</h2>
             
             <div style="display: flex; justify-content: space-between; margin: 20px 0; padding: 15px; background: rgba(255,215,0,0.1); border-radius: 10px;">
                 <span>💰 金币: <span id="shopCoins" style="color: #ffd700; font-weight: bold;">1000</span></span>
                 <span>💎 钻石: <span id="shopDiamonds" style="color: #0ff; font-weight: bold;">0</span></span>
             </div>
-            <div id="shopItems" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0;">
-                <!-- 动态生成 -->
+            
+            <!-- 商品列表滚动区域 -->
+            <div class="scrollable-area" style="max-height: 400px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 10px; margin: 20px 0;">
+                <div id="shopItems" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                    <!-- 动态生成 -->
+                </div>
             </div>
             
             <div id="earnCoinsSection" class="earn-coins-hint hidden">
@@ -889,6 +1166,22 @@
                     <p>最高层数: <span id="userHighestLevel">2</span></p>
                 </div>
                 
+                <!-- 新增：功能导航 -->
+                <div style="padding: 15px; background: rgba(255,215,0,0.05); border-radius: 10px; margin-bottom: 15px;">
+                    <p style="color: #888; margin-bottom: 10px;">我的收藏</p>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                        <button class="btn btn-secondary" onclick="showPostcardCollection()" style="padding: 10px; font-size: 13px;">
+                            📮 明信片
+                        </button>
+                        <button class="btn btn-secondary" onclick="showHonorWall()" style="padding: 10px; font-size: 13px;">
+                            🏆 荣誉墙
+                        </button>
+                        <button class="btn btn-secondary" onclick="showStats()" style="padding: 10px; font-size: 13px;">
+                            📊 战绩
+                        </button>
+                    </div>
+                </div>
+                
                 <div id="vipSection" style="padding: 15px; background: rgba(255,215,0,0.1); border-radius: 10px; margin-bottom: 15px;">
                     <p style="color: #888; margin-bottom: 10px;">VIP特权</p>
                     <div id="vipStatus">
@@ -909,6 +1202,277 @@
             </div>
             
             <button class="btn btn-secondary" onclick="closeUserCenter()">关闭</button>
+        </div>
+    </div>
+    
+    <!-- ==================== 明信片收藏册弹窗 ==================== -->
+    <div class="overlay" id="postcardCollectionOverlay">
+        <div class="overlay-content scrollable-area" style="max-width: 700px; max-height: 85vh;">
+            <h2>📮 明信片收藏册</h2>
+            
+            <!-- 收藏进度 -->
+            <div style="margin: 20px 0; padding: 20px; background: rgba(255,215,0,0.1); border-radius: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span style="color: #ffd700; font-size: 18px; font-weight: bold;">📊 收集进度</span>
+                    <span id="postcardProgress" style="color: #ffd700; font-size: 24px; font-weight: bold;">12/196</span>
+                </div>
+                <div style="width: 100%; height: 20px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden;">
+                    <div id="postcardProgressBar" style="width: 6%; height: 100%; background: linear-gradient(90deg, #ffd700, #ff6b6b); border-radius: 10px; transition: width 0.5s;"></div>
+                </div>
+                <p style="color: #888; margin-top: 10px; font-size: 13px;">已解锁 12 个国家的明信片，继续探索吧！</p>
+            </div>
+            
+            <!-- 12宫格展示区域 - 支持滚动 -->
+            <div class="scrollable-area" style="max-height: 450px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 15px;">
+                <div id="postcardGrid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                    <!-- 动态生成12宫格 -->
+                    <div class="postcard-item" style="aspect-ratio: 3/4; background: linear-gradient(135deg, #1a1a3e, #0d1b2a); border: 2px solid #ffd700; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <span style="font-size: 32px;">🇨🇳</span>
+                        <span style="color: #ffd700; font-size: 12px; margin-top: 5px;">中国</span>
+                        <span style="color: #888; font-size: 10px;">长城</span>
+                    </div>
+                    <div class="postcard-item" style="aspect-ratio: 3/4; background: linear-gradient(135deg, #1a1a3e, #0d1b2a); border: 2px solid #ffd700; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <span style="font-size: 32px;">🇯🇵</span>
+                        <span style="color: #ffd700; font-size: 12px; margin-top: 5px;">日本</span>
+                        <span style="color: #888; font-size: 10px;">富士山</span>
+                    </div>
+                    <div class="postcard-item" style="aspect-ratio: 3/4; background: linear-gradient(135deg, #1a1a3e, #0d1b2a); border: 2px solid #ffd700; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <span style="font-size: 32px;">🇫🇷</span>
+                        <span style="color: #ffd700; font-size: 12px; margin-top: 5px;">法国</span>
+                        <span style="color: #888; font-size: 10px;">埃菲尔铁塔</span>
+                    </div>
+                    <div class="postcard-item" style="aspect-ratio: 3/4; background: linear-gradient(135deg, #1a1a3e, #0d1b2a); border: 2px solid #ffd700; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <span style="font-size: 32px;">🇪🇬</span>
+                        <span style="color: #ffd700; font-size: 12px; margin-top: 5px;">埃及</span>
+                        <span style="color: #888; font-size: 10px;">金字塔</span>
+                    </div>
+                    <div class="postcard-item locked" style="aspect-ratio: 3/4; background: rgba(0,0,0,0.3); border: 2px dashed rgba(255,255,255,0.2); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span style="font-size: 32px; opacity: 0.3;">🔒</span>
+                        <span style="color: #666; font-size: 12px; margin-top: 5px;">未解锁</span>
+                    </div>
+                    <div class="postcard-item locked" style="aspect-ratio: 3/4; background: rgba(0,0,0,0.3); border: 2px dashed rgba(255,255,255,0.2); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span style="font-size: 32px; opacity: 0.3;">🔒</span>
+                        <span style="color: #666; font-size: 12px; margin-top: 5px;">未解锁</span>
+                    </div>
+                    <div class="postcard-item locked" style="aspect-ratio: 3/4; background: rgba(0,0,0,0.3); border: 2px dashed rgba(255,255,255,0.2); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span style="font-size: 32px; opacity: 0.3;">🔒</span>
+                        <span style="color: #666; font-size: 12px; margin-top: 5px;">未解锁</span>
+                    </div>
+                    <div class="postcard-item locked" style="aspect-ratio: 3/4; background: rgba(0,0,0,0.3); border: 2px dashed rgba(255,255,255,0.2); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span style="font-size: 32px; opacity: 0.3;">🔒</span>
+                        <span style="color: #666; font-size: 12px; margin-top: 5px;">未解锁</span>
+                    </div>
+                </div>
+                
+                <!-- 更多未解锁提示 -->
+                <div style="text-align: center; padding: 30px; color: #666;">
+                    <p>🔒 还有 184 个国家的明信片等待解锁</p>
+                    <p style="font-size: 12px; margin-top: 10px;">继续游戏，探索世界！</p>
+                </div>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="closePostcardCollection()" style="margin-top: 20px;">关闭</button>
+        </div>
+    </div>
+    
+    <!-- ==================== 荣誉墙弹窗 ==================== -->
+    <div class="overlay" id="honorWallOverlay">
+        <div class="overlay-content scrollable-area" style="max-width: 650px; max-height: 85vh;">
+            <h2>🏆 荣誉墙</h2>
+            
+            <!-- 进度圆环区域 -->
+            <div style="margin: 20px 0; padding: 20px; background: rgba(255,215,0,0.1); border-radius: 15px; display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap; gap: 20px;">
+                <div style="text-align: center;">
+                    <div style="width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(#ffd700 0deg 108deg, rgba(255,255,255,0.1) 108deg); display: flex; align-items: center; justify-content: center; position: relative;">
+                        <div style="width: 90px; height: 90px; border-radius: 50%; background: #1a1a3e; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <span style="color: #ffd700; font-size: 28px; font-weight: bold;">30%</span>
+                            <span style="color: #888; font-size: 10px;">总进度</span>
+                        </div>
+                    </div>
+                    <p style="color: #ffd700; margin-top: 10px; font-size: 14px;">🏅 称号收集</p>
+                </div>
+                
+                <div style="text-align: center;">
+                    <div style="width: 100px; height: 100px; border-radius: 50%; background: conic-gradient(#0f0 0deg 180deg, rgba(255,255,255,0.1) 180deg); display: flex; align-items: center; justify-content: center; position: relative;">
+                        <div style="width: 75px; height: 75px; border-radius: 50%; background: #1a1a3e; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <span style="color: #0f0; font-size: 22px; font-weight: bold;">50%</span>
+                            <span style="color: #888; font-size: 10px;">成就</span>
+                        </div>
+                    </div>
+                    <p style="color: #0f0; margin-top: 10px; font-size: 14px;">🎯 成就解锁</p>
+                </div>
+                
+                <div style="text-align: center;">
+                    <div style="width: 100px; height: 100px; border-radius: 50%; background: conic-gradient(#0ff 0deg 72deg, rgba(255,255,255,0.1) 72deg); display: flex; align-items: center; justify-content: center; position: relative;">
+                        <div style="width: 75px; height: 75px; border-radius: 50%; background: #1a1a3e; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <span style="color: #0ff; font-size: 22px; font-weight: bold;">20%</span>
+                            <span style="color: #888; font-size: 10px;">稀有</span>
+                        </div>
+                    </div>
+                    <p style="color: #0ff; margin-top: 10px; font-size: 14px;">💎 稀有称号</p>
+                </div>
+            </div>
+            
+            <!-- 称号列表 - 支持滚动 -->
+            <div class="scrollable-area" style="max-height: 350px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 15px;">
+                <h3 style="color: #ffd700; margin-bottom: 15px; text-align: left;">✨ 已获得的称号</h3>
+                
+                <div id="honorList" style="display: flex; flex-direction: column; gap: 10px;">
+                    <div class="honor-item" style="display: flex; align-items: center; padding: 15px; background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent); border-left: 4px solid #ffd700; border-radius: 8px;">
+                        <span style="font-size: 28px; margin-right: 15px;">👑</span>
+                        <div style="flex: 1; text-align: left;">
+                            <p style="color: #ffd700; font-weight: bold; font-size: 16px;">首登者</p>
+                            <p style="color: #888; font-size: 12px;">第一个到达A层的玩家</p>
+                        </div>
+                        <span style="color: #ffd700; font-size: 12px;">2026.03.01</span>
+                    </div>
+                    
+                    <div class="honor-item" style="display: flex; align-items: center; padding: 15px; background: linear-gradient(90deg, rgba(0,255,0,0.2), transparent); border-left: 4px solid #0f0; border-radius: 8px;">
+                        <span style="font-size: 28px; margin-right: 15px;">🎴</span>
+                        <div style="flex: 1; text-align: left;">
+                            <p style="color: #0f0; font-weight: bold; font-size: 16px;">卡牌大师</p>
+                            <p style="color: #888; font-size: 12px;">累计出牌1000次</p>
+                        </div>
+                        <span style="color: #0f0; font-size: 12px;">2026.02.28</span>
+                    </div>
+                    
+                    <div class="honor-item" style="display: flex; align-items: center; padding: 15px; background: linear-gradient(90deg, rgba(255,0,0,0.2), transparent); border-left: 4px solid #f00; border-radius: 8px;">
+                        <span style="font-size: 28px; margin-right: 15px;">🔥</span>
+                        <div style="flex: 1; text-align: left;">
+                            <p style="color: #f00; font-weight: bold; font-size: 16px;">连胜王者</p>
+                            <p style="color: #888; font-size: 12px;">连续获胜10场</p>
+                        </div>
+                        <span style="color: #f00; font-size: 12px;">2026.02.25</span>
+                    </div>
+                    
+                    <div class="honor-item" style="display: flex; align-items: center; padding: 15px; background: linear-gradient(90deg, rgba(153,102,255,0.2), transparent); border-left: 4px solid #96f; border-radius: 8px;">
+                        <span style="font-size: 28px; margin-right: 15px;">🌍</span>
+                        <div style="flex: 1; text-align: left;">
+                            <p style="color: #96f; font-weight: bold; font-size: 16px;">环球旅行者</p>
+                            <p style="color: #888; font-size: 12px;">解锁10个国家的明信片</p>
+                        </div>
+                        <span style="color: #96f; font-size: 12px;">2026.02.20</span>
+                    </div>
+                </div>
+                
+                <h3 style="color: #666; margin: 20px 0 15px; text-align: left;">🔒 未解锁的称号 (20个)</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <span style="padding: 8px 15px; background: rgba(0,0,0,0.3); border-radius: 20px; color: #666; font-size: 12px;">🔒 传奇玩家</span>
+                    <span style="padding: 8px 15px; background: rgba(0,0,0,0.3); border-radius: 20px; color: #666; font-size: 12px;">🔒 天命之子</span>
+                    <span style="padding: 8px 15px; background: rgba(0,0,0,0.3); border-radius: 20px; color: #666; font-size: 12px;">🔒 财富之王</span>
+                    <span style="padding: 8px 15px; background: rgba(0,0,0,0.3); border-radius: 20px; color: #666; font-size: 12px;">🔒 社交达人</span>
+                    <span style="padding: 8px 15px; background: rgba(0,0,0,0.3); border-radius: 20px; color: #666; font-size: 12px;">🔒 完美主义者</span>
+                    <span style="padding: 8px 15px; background: rgba(0,0,0,0.3); border-radius: 20px; color: #666; font-size: 12px;">🔒 速通高手</span>
+                </div>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="closeHonorWall()" style="margin-top: 20px;">关闭</button>
+        </div>
+    </div>
+    
+    <!-- ==================== 个人战绩弹窗 ==================== -->
+    <div class="overlay" id="statsOverlay">
+        <div class="overlay-content scrollable-area" style="max-width: 600px; max-height: 85vh;">
+            <h2>📊 个人战绩</h2>
+            
+            <!-- 6项核心数据 -->
+            <div style="margin: 20px 0;">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+                    <div style="padding: 20px; background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,107,107,0.2)); border-radius: 15px; text-align: center; border: 1px solid rgba(255,215,0,0.3);">
+                        <p style="font-size: 32px; font-weight: bold; color: #ffd700;">128</p>
+                        <p style="color: #888; font-size: 12px;">总局数</p>
+                    </div>
+                    <div style="padding: 20px; background: linear-gradient(135deg, rgba(0,255,0,0.2), rgba(0,255,0,0.1)); border-radius: 15px; text-align: center; border: 1px solid rgba(0,255,0,0.3);">
+                        <p style="font-size: 32px; font-weight: bold; color: #0f0;">76</p>
+                        <p style="color: #888; font-size: 12px;">获胜场次</p>
+                    </div>
+                    <div style="padding: 20px; background: linear-gradient(135deg, rgba(0,200,255,0.2), rgba(0,100,255,0.1)); border-radius: 15px; text-align: center; border: 1px solid rgba(0,200,255,0.3);">
+                        <p style="font-size: 32px; font-weight: bold; color: #0cf;">59.4%</p>
+                        <p style="color: #888; font-size: 12px;">胜率</p>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                    <div style="padding: 20px; background: linear-gradient(135deg, rgba(255,0,200,0.2), rgba(200,0,255,0.1)); border-radius: 15px; text-align: center; border: 1px solid rgba(255,0,200,0.3);">
+                        <p style="font-size: 32px; font-weight: bold; color: #f0c;">A</p>
+                        <p style="color: #888; font-size: 12px;">最高层数</p>
+                    </div>
+                    <div style="padding: 20px; background: linear-gradient(135deg, rgba(255,150,0,0.2), rgba(255,100,0,0.1)); border-radius: 15px; text-align: center; border: 1px solid rgba(255,150,0,0.3);">
+                        <p style="font-size: 32px; font-weight: bold; color: #f90;">15</p>
+                        <p style="color: #888; font-size: 12px;">连胜记录</p>
+                    </div>
+                    <div style="padding: 20px; background: linear-gradient(135deg, rgba(150,255,0,0.2), rgba(100,255,0,0.1)); border-radius: 15px; text-align: center; border: 1px solid rgba(150,255,0,0.3);">
+                        <p style="font-size: 32px; font-weight: bold; color: #9f0;">2,450</p>
+                        <p style="color: #888; font-size: 12px;">累计得分</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 详细统计 - 支持滚动 -->
+            <div class="scrollable-area" style="max-height: 300px; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 15px; margin: 20px 0;">
+                <h3 style="color: #ffd700; margin-bottom: 15px; text-align: left;">📈 详细数据</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <span style="color: #888;">⚔️ 累计出牌数</span>
+                        <span style="color: #ffd700; font-weight: bold;">3,256</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <span style="color: #888;">🎯 完美匹配次数</span>
+                        <span style="color: #ffd700; font-weight: bold;">89</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <span style="color: #888;">🎴 使用天命牌</span>
+                        <span style="color: #ffd700; font-weight: bold;">45</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <span style="color: #888;">🏆 获得冠军</span>
+                        <span style="color: #ffd700; font-weight: bold;">23</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <span style="color: #888;">⏱️ 平均游戏时长</span>
+                        <span style="color: #ffd700; font-weight: bold;">8分32秒</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <span style="color: #888;">📅 注册天数</span>
+                        <span style="color: #ffd700; font-weight: bold;">45天</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <span style="color: #888;">🎮 单日最高场次</span>
+                        <span style="color: #ffd700; font-weight: bold;">12场</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <span style="color: #888;">💰 累计获得金币</span>
+                        <span style="color: #ffd700; font-weight: bold;">15,680</span>
+                    </div>
+                </div>
+                
+                <h3 style="color: #ffd700; margin: 20px 0 15px; text-align: left;">📊 最近战绩</h3>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(0,255,0,0.1); border-radius: 8px; border-left: 3px solid #0f0;">
+                        <span style="color: #888; font-size: 12px;">2026-03-07</span>
+                        <span style="color: #0f0;">✅ 获胜</span>
+                        <span style="color: #ffd700;">+150分</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(0,255,0,0.1); border-radius: 8px; border-left: 3px solid #0f0;">
+                        <span style="color: #888; font-size: 12px;">2026-03-07</span>
+                        <span style="color: #0f0;">✅ 获胜</span>
+                        <span style="color: #ffd700;">+180分</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,0,0,0.1); border-radius: 8px; border-left: 3px solid #f00;">
+                        <span style="color: #888; font-size: 12px;">2026-03-06</span>
+                        <span style="color: #f00;">❌ 失败</span>
+                        <span style="color: #ffd700;">+80分</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(0,255,0,0.1); border-radius: 8px; border-left: 3px solid #0f0;">
+                        <span style="color: #888; font-size: 12px;">2026-03-06</span>
+                        <span style="color: #0f0;">✅ 获胜</span>
+                        <span style="color: #ffd700;">+200分</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="closeStats()" style="margin-top: 20px;">关闭</button>
         </div>
     </div>
 
@@ -1913,6 +2477,79 @@
         
         function closeUserCenter() {
             document.getElementById('userCenterOverlay').classList.remove('active');
+        }
+        
+        // ==================== 明信片收藏册 ====================
+        function showPostcardCollection() {
+            document.getElementById('postcardCollectionOverlay').classList.add('active');
+        }
+        
+        function closePostcardCollection() {
+            document.getElementById('postcardCollectionOverlay').classList.remove('active');
+        }
+        
+        // ==================== 荣誉墙 ====================
+        function showHonorWall() {
+            document.getElementById('honorWallOverlay').classList.add('active');
+        }
+        
+        function closeHonorWall() {
+            document.getElementById('honorWallOverlay').classList.remove('active');
+        }
+        
+        // ==================== 个人战绩 ====================
+        function showStats() {
+            document.getElementById('statsOverlay').classList.add('active');
+        }
+        
+        function closeStats() {
+            document.getElementById('statsOverlay').classList.remove('active');
+        }
+        
+        function enterPreviewMode() {
+            // 直接进入游戏界面预览布局
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.add('active');
+            
+            // 初始化模拟游戏状态
+            gameState = {
+                players: {
+                    'preview-player': {
+                        name: '金先生',
+                        level: 5,
+                        score: 150,
+                        hand: [
+                            {suit: '♠', rank: 'A'},
+                            {suit: '♥', rank: 'K'},
+                            {suit: '♦', rank: 'Q'},
+                            {suit: '♣', rank: 'J'},
+                            {suit: '♠', rank: '10'}
+                        ],
+                        destiny_cards: ['换牌', '看牌']
+                    },
+                    'ai-1': {name: 'AI-1', level: 4},
+                    'ai-2': {name: 'AI-2', level: 6},
+                    'ai-3': {name: 'AI-3', level: 3}
+                }
+            };
+            window.gameState = gameState;
+            playerId = 'preview-player';
+            window.playerId = playerId;
+            currentRound = 3;
+            
+            // 初始化玩家头像
+            initPlayerAvatars();
+            
+            // 更新显示
+            updateDisplay();
+            
+            // 显示欢迎消息
+            addChat('system', '🎮 布局预览模式 - 查看新的塔楼装饰效果！');
+            showGuardSpeech("欢迎来到命运之塔！看看两侧的新装饰！");
+            
+            // 启动计时器
+            startTimer();
+            startGuardSpeech();
         }
         
         function setTheme(theme) {
