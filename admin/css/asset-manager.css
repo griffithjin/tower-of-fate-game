@@ -303,6 +303,19 @@ body {
 .tag-epic { background: #9b59b6; color: #fff; }
 .tag-legendary { background: linear-gradient(135deg, #ffd700, #ffaa00); color: #000; }
 
+/* 称号类型标签 */
+.tag-permanent { background: #00ff88; color: #000; }
+.tag-limited { background: #ffaa00; color: #000; }
+.tag-event { background: #ff6b6b; color: #fff; }
+
+/* 状态标签 */
+.tag-upcoming { background: #4488ff; color: #fff; }
+.tag-ongoing { background: #00ff88; color: #000; }
+.tag-ended { background: #666; color: #fff; }
+
+/* 禁用的行 */
+.banned-row { opacity: 0.6; background: rgba(255, 0, 0, 0.05) !important; }
+
 /* 操作按钮组 */
 .action-btns { display: flex; gap: 8px; }
 

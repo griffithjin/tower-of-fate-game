@@ -70,7 +70,11 @@ const assetManager = {
             avatars: { icon: '🎭', text: '头像管理' },
             items: { icon: '🎒', text: '道具管理' },
             shop: { icon: '🛒', text: '商城商品管理' },
-            tournaments: { icon: '🏆', text: '锦标赛配置管理' }
+            tournaments: { icon: '🏆', text: '锦标赛配置管理' },
+            points: { icon: '📊', text: '积分管理' },
+            titles: { icon: '👑', text: '荣誉称号管理' },
+            users: { icon: '👤', text: '用户数据管理' },
+            postcards: { icon: '🎑', text: '明信片管理' }
         };
         const title = titles[module];
         if (title) {
@@ -99,6 +103,18 @@ const assetManager = {
             case 'tournaments':
                 tournamentManager.load();
                 break;
+            case 'points':
+                pointsManager.load();
+                break;
+            case 'titles':
+                titleManager.load();
+                break;
+            case 'users':
+                userManager.load();
+                break;
+            case 'postcards':
+                postcardManager.load();
+                break;
         }
     },
 
@@ -109,6 +125,10 @@ const assetManager = {
         if (typeof itemManager !== 'undefined') itemManager.init();
         if (typeof shopManager !== 'undefined') shopManager.init();
         if (typeof tournamentManager !== 'undefined') tournamentManager.init();
+        if (typeof pointsManager !== 'undefined') pointsManager.init();
+        if (typeof titleManager !== 'undefined') titleManager.init();
+        if (typeof userManager !== 'undefined') userManager.init();
+        if (typeof postcardManager !== 'undefined') postcardManager.init();
     },
 
     hasPermission(action) {
