@@ -1,198 +1,128 @@
 #!/bin/bash
-# ============================================================
-# 命运塔 (Tower of Fate) GitHub 部署脚本
-# ============================================================
-# 用法: ./deploy.sh [commit_message]
-# 默认提交信息: "Update web client and tower assets"
 
-set -e  # 遇到错误立即退出
+# 命运塔后端 API 部署脚本
+# Fate Tower Backend Deployment Script
+
+echo "🏰 命运塔游戏后端部署脚本"
+echo "================================"
 
 # 颜色定义
-RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
+RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# 配置
-PROJECT_DIR="/Users/moutai/.openclaw/workspace/projects/tower-of-fate"
-WEB_CLIENT_DIR="$PROJECT_DIR/web_client"
-TOWERS_BATCH1="/Users/moutai/.openclaw/workspace/towers_batch1"
-TOWERS_BATCH2="/Users/moutai/.openclaw/workspace/towers_batch2"
-ASSETS_DIR="$WEB_CLIENT_DIR/assets/images/towers"
-GITHUB_REPO="github.com/username/tower-of-fate.git"  # 请修改为你的GitHub仓库
-
-# 提交信息
-COMMIT_MSG="${1:-"Update web client and tower assets ($(date +%Y-%m-%d))"}"
-
-echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}  命运塔 (Tower of Fate) 部署脚本${NC}"
-echo -e "${BLUE}========================================${NC}"
-echo ""
-
-# ============================================================
-# 步骤 1: 验证环境
-# ============================================================
-echo -e "${YELLOW}[1/5] 验证环境...${NC}"
-
-if [ ! -d "$PROJECT_DIR" ]; then
-    echo -e "${RED}错误: 项目目录不存在: $PROJECT_DIR${NC}"
+# 检查 Node.js
+if ! command -v node &> /dev/null; then
+    echo -e "${RED}❌ Node.js 未安装${NC}"
+    echo "请先安装 Node.js 18+: https://nodejs.org/"
     exit 1
 fi
 
-if [ ! -d "$WEB_CLIENT_DIR" ]; then
-    echo -e "${RED}错误: web_client 目录不存在: $WEB_CLIENT_DIR${NC}"
+NODE_VERSION=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
+if [ "$NODE_VERSION" -lt 18 ]; then
+    echo -e "${RED}❌ Node.js 版本过低 (需要 >= 18)${NC}"
     exit 1
 fi
 
-cd "$PROJECT_DIR"
+echo -e "${GREEN}✅ Node.js 版本: $(node --version)${NC}"
 
-# 检查Git配置
-if ! git rev-parse --git-dir > /dev/null 2>&1; then
-    echo -e "${RED}错误: 当前目录不是Git仓库${NC}"
+# 检查 MongoDB
+if ! command -v mongod &> /dev/null; then
+    echo -e "${YELLOW}⚠️  MongoDB 未检测到，请确保已安装并运行${NC}"
+    echo "安装指南: https://docs.mongodb.com/manual/installation/"
+else
+    echo -e "${GREEN}✅ MongoDB 已安装${NC}"
+fi
+
+# 安装依赖
+echo ""
+echo "📦 安装依赖..."
+npm install
+
+if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ 依赖安装失败${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}✓ 环境验证通过${NC}"
-echo ""
+echo -e "${GREEN}✅ 依赖安装完成${NC}"
 
-# ============================================================
-# 步骤 2: 创建assets目录结构
-# ============================================================
-echo -e "${YELLOW}[2/5] 创建assets目录结构...${NC}"
-
-mkdir -p "$ASSETS_DIR"
-mkdir -p "$WEB_CLIENT_DIR/assets/images"
-mkdir -p "$WEB_CLIENT_DIR/assets/music"
-mkdir -p "$WEB_CLIENT_DIR/assets/skins"
-
-echo -e "${GREEN}✓ Assets目录结构已创建${NC}"
-echo ""
-
-# ============================================================
-# 步骤 3: 复制塔图片到assets
-# ============================================================
-echo -e "${YELLOW}[3/5] 复制塔图片到assets...${NC}"
-
-TOWER_COUNT=0
-
-# 复制batch1塔图片
-if [ -d "$TOWERS_BATCH1" ]; then
-    echo "  复制 towers_batch1..."
-    for img in "$TOWERS_BATCH1"/*.png; do
-        if [ -f "$img" ]; then
-            cp "$img" "$ASSETS_DIR/"
-            ((TOWER_COUNT++))
-        fi
-    done
-    echo -e "    ${GREEN}✓ 已复制 batch1 塔图片${NC}"
-fi
-
-# 复制batch2塔图片
-if [ -d "$TOWERS_BATCH2" ]; then
-    echo "  复制 towers_batch2..."
-    for img in "$TOWERS_BATCH2"/*.png; do
-        if [ -f "$img" ]; then
-            cp "$img" "$ASSETS_DIR/"
-            ((TOWER_COUNT++))
-        fi
-    done
-    echo -e "    ${GREEN}✓ 已复制 batch2 塔图片${NC}"
-fi
-
-echo -e "${GREEN}✓ 共复制 $TOWER_COUNT 张塔图片${NC}"
-echo ""
-
-# ============================================================
-# 步骤 4: 验证12个JS模块
-# ============================================================
-echo -e "${YELLOW}[4/5] 验证12个JS模块...${NC}"
-
-JS_MODULES=(
-    "achievements.js"
-    "analytics.js"
-    "audio-system.js"
-    "battle-pass.js"
-    "daily-missions.js"
-    "leaderboard.js"
-    "mail-system.js"
-    "shop-expanded.js"
-    "social-system.js"
-    "tournament-enhanced.js"
-    "tutorial.js"
-    "vip-system.js"
-)
-
-MISSING_MODULES=()
-
-for module in "${JS_MODULES[@]}"; do
-    if [ -f "$WEB_CLIENT_DIR/$module" ]; then
-        SIZE=$(du -h "$WEB_CLIENT_DIR/$module" | cut -f1)
-        echo -e "  ${GREEN}✓${NC} $module (${SIZE})"
-    else
-        echo -e "  ${RED}✗${NC} $module (缺失!)"
-        MISSING_MODULES+=("$module")
-    fi
-done
-
-if [ ${#MISSING_MODULES[@]} -gt 0 ]; then
+# 环境变量配置
+if [ ! -f .env ]; then
     echo ""
-    echo -e "${RED}警告: 以下模块缺失:${NC}"
-    for module in "${MISSING_MODULES[@]}"; do
-        echo "  - $module"
-    done
-    echo ""
-    read -p "是否继续部署? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo -e "${RED}部署已取消${NC}"
+    echo "🔧 配置环境变量..."
+    cp .env.example .env
+    echo -e "${YELLOW}⚠️  请编辑 .env 文件，填入你的配置${NC}"
+fi
+
+# 创建日志目录
+mkdir -p logs
+
+# 启动方式选择
+echo ""
+echo "请选择启动方式:"
+echo "1) 开发模式 (nodemon)"
+echo "2) 生产模式 (pm2)"
+echo "3) Docker 部署"
+echo "4) 仅构建"
+read -p "输入选项 [1-4]: " choice
+
+case $choice in
+    1)
+        echo ""
+        echo "🚀 启动开发服务器..."
+        npm install -g nodemon
+        npm run dev
+        ;;
+    2)
+        echo ""
+        echo "🚀 使用 PM2 启动生产服务器..."
+        npm install -g pm2
+        pm2 start server.js --name fate-tower-api
+        pm2 save
+        pm2 startup
+        echo -e "${GREEN}✅ 服务已启动${NC}"
+        echo "常用命令:"
+        echo "  pm2 status       - 查看状态"
+        echo "  pm2 logs         - 查看日志"
+        echo "  pm2 restart all  - 重启服务"
+        echo "  pm2 stop all     - 停止服务"
+        ;;
+    3)
+        echo ""
+        echo "🐳 Docker 部署..."
+        if ! command -v docker &> /dev/null; then
+            echo -e "${RED}❌ Docker 未安装${NC}"
+            exit 1
+        fi
+        
+        # 检查 .env 文件
+        if [ ! -f .env ]; then
+            echo -e "${YELLOW}⚠️  请先创建 .env 文件${NC}"
+            exit 1
+        fi
+        
+        docker-compose up -d
+        echo -e "${GREEN}✅ Docker 容器已启动${NC}"
+        echo "查看日志: docker-compose logs -f"
+        ;;
+    4)
+        echo ""
+        echo "🔨 构建完成"
+        echo -e "${GREEN}✅ 项目已准备就绪${NC}"
+        echo ""
+        echo "下一步:"
+        echo "1. 编辑 .env 文件配置环境变量"
+        echo "2. 确保 MongoDB 已运行"
+        echo "3. 运行 npm start 启动服务"
+        ;;
+    *)
+        echo -e "${RED}❌ 无效选项${NC}"
         exit 1
-    fi
-else
-    echo -e "${GREEN}✓ 所有12个JS模块已验证${NC}"
-fi
-echo ""
-
-# ============================================================
-# 步骤 5: Git提交和推送
-# ============================================================
-echo -e "${YELLOW}[5/5] Git提交和推送...${NC}"
-
-# 添加web_client目录
-echo "  添加 web_client 文件..."
-git add web_client/
-
-# 检查是否有变更要提交
-if git diff --cached --quiet; then
-    echo -e "${YELLOW}没有变更需要提交${NC}"
-else
-    echo "  创建提交: $COMMIT_MSG"
-    git commit -m "$COMMIT_MSG"
-    
-    echo "  推送到GitHub..."
-    if git push origin main 2>/dev/null || git push origin master 2>/dev/null; then
-        echo -e "${GREEN}✓ 已成功推送到GitHub${NC}"
-    else
-        echo -e "${YELLOW}⚠ 推送失败，可能没有配置远程仓库${NC}"
-        echo "  请手动运行: git remote add origin <your-repo-url>"
-    fi
-fi
+        ;;
+esac
 
 echo ""
-echo -e "${BLUE}========================================${NC}"
-echo -e "${GREEN}  部署完成!${NC}"
-echo -e "${BLUE}========================================${NC}"
-echo ""
-echo "部署摘要:"
-echo "  - 项目目录: $PROJECT_DIR"
-echo "  - Web客户端: $WEB_CLIENT_DIR"
-echo "  - 塔图片数量: $TOWER_COUNT"
-echo "  - JS模块: 12个"
-echo "  - 提交信息: $COMMIT_MSG"
-echo ""
-echo "GitHub Pages URL:"
-echo "  https://username.github.io/tower-of-fate/web_client/"
-echo ""
-echo "本地测试:"
-echo "  open $WEB_CLIENT_DIR/index.html"
-echo ""
+echo "🏰 命运塔后端 API 部署完成!"
+echo "API 地址: http://localhost:3000"
+echo "健康检查: http://localhost:3000/health"
