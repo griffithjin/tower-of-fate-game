@@ -944,6 +944,7 @@
                 <button class="btn btn-primary" id="btnQuickMatchTeam">⚡ 快速匹配-团队</button>
                 <button class="btn btn-primary" id="btnCreateRoom">🏠 创建房间</button>
                 <button class="btn btn-secondary" id="btnPreview" onclick="enterPreviewMode()">👁️ 预览布局</button>
+                <button class="btn btn-primary" onclick="window.location.href='playable-3d.html'" style="background: linear-gradient(45deg, #9c27b0, #e91e63);">🎲 3D模式</button>
             </div>
             
             <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
@@ -2633,6 +2634,105 @@
             console.log('首登者使用激怒牌:', e.detail);
             addChat('system', `⚡ 首登者对 ${e.detail.targetName} 使用了 ${e.detail.card.name}！`);
         });
+    </script>
+    
+    <!-- 广告系统 -->
+    <link rel="stylesheet" href="css/advertising-system.css">
+    <script src="js/advertising-system.js"></script>
+    
+    <!-- 17个广告点位容器 -->
+    <!-- 1. 主菜单底部横幅 -->
+    <div data-ad-placement="main-menu-banner" style="display: none;"></div>
+    <!-- 2. 游戏加载页面 -->
+    <div data-ad-placement="loading-screen" style="display: none;"></div>
+    <!-- 3. 回合结束间隙 -->
+    <div data-ad-placement="round-end" style="display: none;"></div>
+    <!-- 4. 暂停菜单 -->
+    <div data-ad-placement="pause-menu" style="display: none;"></div>
+    <!-- 5. 胜利结算页 -->
+    <div data-ad-placement="victory-screen" style="display: none;"></div>
+    <!-- 6. 失败结算页 -->
+    <div data-ad-placement="defeat-screen" style="display: none;"></div>
+    <!-- 7. 锦标赛报名页 -->
+    <div data-ad-placement="tournament-register" style="display: none;"></div>
+    <!-- 8. 商店侧边栏 -->
+    <div data-ad-placement="shop-sidebar" style="display: none;"></div>
+    <!-- 9. 用户中心底部 -->
+    <div data-ad-placement="profile-footer" style="display: none;"></div>
+    <!-- 10. 排行榜页面 -->
+    <div data-ad-placement="leaderboard-page" style="display: none;"></div>
+    <!-- 11. 明信片收藏册 -->
+    <div data-ad-placement="postcard-gallery" style="display: none;"></div>
+    <!-- 12. 连胜模式选择 -->
+    <div data-ad-placement="streak-selector" style="display: none;"></div>
+    <!-- 13. 观战模式侧边栏 -->
+    <div data-ad-placement="spectator-sidebar" style="display: none;"></div>
+    <!-- 14. 匹配等待 -->
+    <div data-ad-placement="matchmaking-wait" style="display: none;"></div>
+    <!-- 15. 每日任务间隙 -->
+    <div data-ad-placement="daily-missions" style="display: none;"></div>
+    <!-- 16. 通知消息内嵌 -->
+    <div data-ad-placement="notification-inline" style="display: none;"></div>
+    <!-- 17. 设置页面底部 -->
+    <div data-ad-placement="settings-footer" style="display: none;"></div>
+    
+    <script>
+        // 广告系统集成 - 监听游戏事件
+        document.addEventListener('DOMContentLoaded', function() {
+            // 确保广告系统已加载
+            setTimeout(function() {
+                if (!window.adSystem) {
+                    console.warn('⚠️ 广告系统未加载');
+                    return;
+                }
+                
+                console.log('🎯 广告系统已集成');
+                
+                // 页面加载完成后展示主菜单横幅
+                window.adSystem.showAd('main-menu-banner');
+                
+                // 商店页面展示侧边栏广告
+                document.addEventListener('shop:open', function() {
+                    window.adSystem.showAd('shop-sidebar');
+                });
+                
+                // 排行榜页面展示广告
+                document.addEventListener('leaderboard:open', function() {
+                    window.adSystem.showAd('leaderboard-page');
+                });
+                
+                // 用户中心展示广告
+                document.addEventListener('profile:open', function() {
+                    window.adSystem.showAd('profile-footer');
+                });
+                
+            }, 1000);
+        });
+        
+        // 游戏事件触发广告展示
+        function showAdOnVictory() {
+            if (window.adSystem) window.adSystem.showAd('victory-screen');
+        }
+        
+        function showAdOnDefeat() {
+            if (window.adSystem) window.adSystem.showAd('defeat-screen');
+        }
+        
+        function showAdOnPause() {
+            if (window.adSystem) window.adSystem.showAd('pause-menu');
+        }
+        
+        function showAdOnRoundEnd() {
+            if (window.adSystem) window.adSystem.showAd('round-end');
+        }
+        
+        function showAdOnLoading() {
+            if (window.adSystem) window.adSystem.showAd('loading-screen');
+        }
+        
+        function showAdOnMatchmaking() {
+            if (window.adSystem) window.adSystem.showAd('matchmaking-wait');
+        }
     </script>
 </body>
 </html>

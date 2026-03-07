@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>命运之塔 3D - Tower of Fate 3D</title>
+    
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- GSAP for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            user-select: none;
+        }
+        
+        :root {
+            --primary-gold: #ffd700;
+            --primary-purple: #6b4ee6;
+            --bg-dark: #0a0a1a;
+            --panel-bg: rgba(20, 20, 40, 0.95);
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            color: #fff;
+            overflow: hidden;
+        }
+        
+        /* 游戏容器 */
+        #game-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        /* UI 覆盖层 */
+        .ui-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .ui-overlay > * {
+            pointer-events: auto;
+        }
+        
+        /* 顶部信息栏 */
+        .top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 15px 20px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .game-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ffd700, #ff6b6b, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+        
+        .room-info {
+            display: flex;
+            gap: 20px;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+        
+        .room-info span {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        /* 3D 控制面板 */
+        .controls-3d {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: var(--panel-bg);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .controls-3d button {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
+            color: #fff;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .controls-3d button:hover {
+            background: linear-gradient(135deg, #3a3a5a, #2a2a4a);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+        
+        .controls-3d button:active {
+            transform: scale(0.95);
+        }
+        
+        /* 玩家状态面板 */
+        .players-panel {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            background: var(--panel-bg);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            backdrop-filter: blur(10px);
+            min-width: 180px;
+        }
+        
+        .players-panel h3 {
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .player-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .player-item:last-child {
+            border-bottom: none;
+        }
+        
+        .player-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid;
+        }
+        
+        .player-avatar.current-turn {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 5px currentColor; }
+            50% { box-shadow: 0 0 20px currentColor; }
+        }
+        
+        .player-info {
+            flex: 1;
+        }
+        
+        .player-name {
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .player-layer {
+            font-size: 0.75em;
+            color: #888;
+        }
+        
+        /* 底部手牌区域 */
+        .hand-cards-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 100%);
+        }
+        
+        .hand-cards {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            width: 70px;
+            height: 100px;
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 2px solid transparent;
+            position: relative;
+        }
+        
+        .card:hover {
+            transform: translateY(-15px) scale(1.1);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+            border-color: #ffd700;
+        }
+        
+        .card.selected {
+            border-color: #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+        }
+        
+        .card.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .card-rank {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .card-suit {
+            font-size: 1.5em;
+        }
+        
+        .red { color: #e74c3c; }
+        .black { color: #2c3e50; }
+        
+        /* 操作按钮 */
+        .action-buttons {
+            position: absolute;
+            bottom: 140px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #ffd700, #ffaa00);
+            color: #000;
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .btn-danger {
+            background: rgba(231, 76, 60, 0.8);
+            color: #fff;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* 游戏日志 */
+        .game-log {
+            position: absolute;
+            bottom: 140px;
+            right: 20px;
+            width: 280px;
+            max-height: 200px;
+            background: var(--panel-bg);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .game-log h3 {
+            padding: 10px 15px;
+            font-size: 0.8em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .log-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            font-size: 0.85em;
+        }
+        
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .log-entry.system {
+            color: #ffd700;
+        }
+        
+        .log-entry.action {
+            color: #4bc0c0;
+        }
+        
+        .log-entry.result {
+            color: #ff6b6b;
+        }
+        
+        /* 当前回合指示器 */
+        .turn-indicator {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            background: var(--panel-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            text-align: center;
+        }
+        
+        .turn-label {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        
+        .turn-player {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .turn-timer {
+            font-size: 1.5em;
+            color: #ff6b6b;
+            margin-top: 10px;
+        }
+        
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--panel-bg);
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            text-align: center;
+            max-width: 400px;
+            animation: modalIn 0.3s ease;
+        }
+        
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .modal-title {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+        
+        .modal-text {
+            color: #aaa;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        /* 提示信息 */
+        .toast {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--panel-bg);
+            padding: 15px 30px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            font-weight: bold;
+            z-index: 200;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .toast.success { border-color: #4bc0c0; color: #4bc0c0; }
+        .toast.error { border-color: #ff6b6b; color: #ff6b6b; }
+        .toast.warning { border-color: #ffcd56; color: #ffcd56; }
+        
+        /* 层选择器 */
+        .layer-selector {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: var(--panel-bg);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .layer-selector h3 {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .layer-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .layer-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .layer-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px currentColor;
+        }
+        
+        .layer-btn.current {
+            box-shadow: 0 0 20px currentColor;
+            border: 2px solid #fff;
+        }
+        
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 1em;
+            }
+            
+            .room-info {
+                font-size: 0.7em;
+                gap: 10px;
+            }
+            
+            .controls-3d {
+                top: auto;
+                bottom: 150px;
+                right: 10px;
+                padding: 10px;
+            }
+            
+            .controls-3d button {
+                width: 40px;
+                height: 40px;
+                font-size: 1em;
+            }
+            
+            .players-panel {
+                top: 60px;
+                left: 10px;
+                padding: 10px;
+                min-width: 140px;
+            }
+            
+            .player-avatar {
+                width: 24px;
+                height: 24px;
+            }
+            
+            .player-name {
+                font-size: 0.8em;
+            }
+            
+            .player-layer {
+                font-size: 0.7em;
+            }
+            
+            .card {
+                width: 50px;
+                height: 75px;
+            }
+            
+            .card-rank {
+                font-size: 1em;
+            }
+            
+            .card-suit {
+                font-size: 1.2em;
+            }
+            
+            .action-buttons {
+                bottom: 120px;
+                gap: 10px;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.85em;
+            }
+            
+            .game-log {
+                display: none;
+            }
+            
+            .turn-indicator {
+                top: 60px;
+                left: auto;
+                right: 10px;
+                transform: none;
+                padding: 10px;
+            }
+            
+            .turn-label {
+                font-size: 0.7em;
+            }
+            
+            .turn-player {
+                font-size: 0.9em;
+            }
+            
+            .turn-timer {
+                font-size: 1.2em;
+            }
+            
+            .layer-selector {
+                display: none;
+            }
+        }
+        
+        /* 加载界面 */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s;
+        }
+        
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 215, 0, 0.2);
+            border-top-color: #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 20px;
+            color: #888;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载界面 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">正在加载3D命运之塔...</div>
+    </div>
+    
+    <!-- 3D 游戏容器 -->
+    <div id="game-container"></div>
+    
+    <!-- UI 覆盖层 -->
+    <div class="ui-overlay">
+        <!-- 顶部信息栏 -->
+        <div class="top-bar">
+            <div class="game-title">🏰 命运之塔 3D</div>
+            <div class="room-info">
+                <div>房间: <span id="roomCode">3D-8888</span></div>
+                <div>玩家: <span id="playerCount">4/4</span></div>
+                <div>回合: <span id="roundCount">1</span></div>
+            </div>
+        </div>
+        
+        <!-- 3D 控制面板 -->
+        <div class="controls-3d">
+            <button onclick="tower3d.rotateLeft()" title="左转">↺</button>
+            <button onclick="tower3d.rotateRight()" title="右转">↻</button>
+            <button onclick="tower3d.zoomIn()" title="放大">+</button>
+            <button onclick="tower3d.zoomOut()" title="缩小">−</button>
+            <button onclick="tower3d.resetView()" title="重置视角">⌂</button>
+            <button onclick="tower3d.toggleAutoRotate()" title="自动旋转">⟲</button>
+        </div>
+        
+        <!-- 玩家面板 -->
+        <div class="players-panel">
+            <h3>👥 玩家状态</h3>
+            <div id="playersList">
+                <div class="player-item">
+                    <div class="player-avatar current-turn" style="background: linear-gradient(135deg, #00ff00, #00aa00); border-color: #00ff00;"></div>
+                    <div class="player-info">
+                        <div class="player-name">玩家1</div>
+                        <div class="player-layer">第 2 层</div>
+                    </div>
+                </div>
+                <div class="player-item">
+                    <div class="player-avatar" style="background: linear-gradient(135deg, #0088ff, #0055aa); border-color: #0088ff;"></div>
+                    <div class="player-info">
+                        <div class="player-name">玩家2</div>
+                        <div class="player-layer">第 3 层</div>
+                    </div>
+                </div>
+                <div class="player-item">
+                    <div class="player-avatar" style="background: linear-gradient(135deg, #ff0088, #aa0055); border-color: #ff0088;"></div>
+                    <div class="player-info">
+                        <div class="player-name">玩家3</div>
+                        <div class="player-layer">第 1 层</div>
+                    </div>
+                </div>
+                <div class="player-item">
+                    <div class="player-avatar" style="background: linear-gradient(135deg, #ff8800, #aa5500); border-color: #ff8800;"></div>
+                    <div class="player-info">
+                        <div class="player-name">玩家4</div>
+                        <div class="player-layer">第 2 层</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 当前回合 -->
+        <div class="turn-indicator">
+            <div class="turn-label">当前回合</div>
+            <div class="turn-player" id="currentPlayer">玩家1</div>
+            <div class="turn-timer" id="turnTimer">30</div>
+        </div>
+        
+        <!-- 层选择器 -->
+        <div class="layer-selector">
+            <h3>选择层</h3>
+            <div class="layer-buttons" id="layerButtons">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="playBtn" onclick="playCard()">出牌</button>
+            <button class="btn btn-secondary" id="skipBtn" onclick="skipTurn()">跳过</button>
+            <button class="btn btn-danger" id="surrenderBtn" onclick="surrender()">认输</button>
+        </div>
+        
+        <!-- 游戏日志 -->
+        <div class="game-log">
+            <h3>📜 游戏记录</h3>
+            <div class="log-content" id="gameLog">
+                <div class="log-entry system">游戏开始！</div>
+                <div class="log-entry action">玩家1 进入第2层</div>
+                <div class="log-entry result">守卫♠K 被击败！</div>
+            </div>
+        </div>
+        
+        <!-- 手牌区域 -->
+        <div class="hand-cards-container">
+            <div class="hand-cards" id="handCards">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 提示信息 -->
+    <div class="toast" id="toast"></div>
+    
+    <!-- 模态框 -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <h2 class="modal-title" id="modalTitle">标题</h2>
+            <p class="modal-text" id="modalText">内容</p>
+            <button class="btn btn-primary" onclick="closeModal()">确定</button>
+        </div>
+    </div>
+    
+    <!-- 引入3D塔楼系统 -->
+    <script src="js/3d/tower-3d.js"></script>
+    
+    <script>
+        // 全局变量
+        let tower3d;
+        let gameState = {
+            currentPlayer: 0,
+            players: [
+                { name: '玩家1', layer: 0, color: '#00ff00' },
+                { name: '玩家2', layer: 0, color: '#0088ff' },
+                { name: '玩家3', layer: 0, color: '#ff0088' },
+                { name: '玩家4', layer: 0, color: '#ff8800' }
+            ],
+            hand: [],
+            selectedCard: null,
+            selectedLayer: null,
+            round: 1,
+            timer: 30
+        };
+        
+        // 初始化
+        window.onload = function() {
+            init3D();
+            initGame();
+            generateHandCards();
+            generateLayerButtons();
+            startTimer();
+            
+            // 隐藏加载界面
+            setTimeout(() => {
+                document.getElementById('loadingScreen').classList.add('hidden');
+            }, 1500);
+        };
+        
+        // 初始化3D场景
+        function init3D() {
+            const container = document.getElementById('game-container');
+            tower3d = new Tower3D(container);
+        }
+        
+        // 初始化游戏
+        function initGame() {
+            // 模拟一些守卫牌
+            setTimeout(() => {
+                tower3d.flipGuardCard(1, 0, '♠', 'K');
+                tower3d.flipGuardCard(2, 1, '♥', 'Q');
+                tower3d.flipGuardCard(3, 2, '♦', 'J');
+            }, 2000);
+        }
+        
+        // 生成手牌
+        function generateHandCards() {
+            const suits = ['♠', '♥', '♣', '♦'];
+            const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+            const handCards = document.getElementById('handCards');
+            
+            handCards.innerHTML = '';
+            gameState.hand = [];
+            
+            for (let i = 0; i < 8; i++) {
+                const suit = suits[Math.floor(Math.random() * suits.length)];
+                const rank = ranks[Math.floor(Math.random() * ranks.length)];
+                const isRed = suit === '♥' || suit === '♦';
+                
+                gameState.hand.push({ suit, rank });
+                
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.index = i;
+                card.innerHTML = `
+                    <div class="card-rank ${isRed ? 'red' : 'black'}">${rank}</div>
+                    <div class="card-suit ${isRed ? 'red' : 'black'}">${suit}</div>
+                `;
+                card.onclick = () => selectCard(i);
+                handCards.appendChild(card);
+            }
+        }
+        
+        // 生成层按钮
+        function generateLayerButtons() {
+            const layerButtons = document.getElementById('layerButtons');
+            const layers = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+            const colors = [
+                '#ff6b6b', '#ff8e53', '#ffcd56', '#4bc0c0', '#36a2eb', '#9966ff',
+                '#ff9f40', '#ff6384', '#c9cbcf', '#ffd700', '#e91e63', '#9c27b0', '#00bcd4'
+            ];
+            
+            layers.forEach((layer, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'layer-btn';
+                btn.textContent = layer;
+                btn.style.background = colors[index];
+                btn.style.color = index > 8 ? '#fff' : '#000';
+                btn.onclick = () => selectLayer(index);
+                layerButtons.appendChild(btn);
+            });
+        }
+        
+        // 选择卡牌
+        function selectCard(index) {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(c => c.classList.remove('selected'));
+            
+            if (gameState.selectedCard === index) {
+                gameState.selectedCard = null;
+            } else {
+                cards[index].classList.add('selected');
+                gameState.selectedCard = index;
+            }
+        }
+        
+        // 选择层
+        function selectLayer(index) {
+            const buttons = document.querySelectorAll('.layer-btn');
+            buttons.forEach(b => b.classList.remove('current'));
+            
+            if (gameState.selectedLayer === index) {
+                gameState.selectedLayer = null;
+            } else {
+                buttons[index].classList.add('current');
+                gameState.selectedLayer = index;
+                
+                // 3D塔楼高亮
+                tower3d.highlightLayer(index);
+            }
+        }
+        
+        // 出牌
+        function playCard() {
+            if (gameState.selectedCard === null) {
+                showToast('请先选择一张手牌！', 'warning');
+                return;
+            }
+            
+            if (gameState.selectedLayer === null) {
+                showToast('请先选择一个目标层！', 'warning');
+                return;
+            }
+            
+            const card = gameState.hand[gameState.selectedCard];
+            addLog(`玩家${gameState.currentPlayer + 1} 出牌 ${card.suit}${card.rank} 攻击第${gameState.selectedLayer + 2}层`, 'action');
+            
+            // 模拟3D动画
+            tower3d.flipGuardCard(gameState.selectedLayer, Math.floor(Math.random() * 4), card.suit, card.rank);
+            
+            // 更新玩家位置
+            setTimeout(() => {
+                tower3d.animatePlayerRise(gameState.currentPlayer, gameState.selectedLayer);
+                gameState.players[gameState.currentPlayer].layer = gameState.selectedLayer;
+                updatePlayersList();
+            }, 1000);
+            
+            // 移除已出的牌
+            const cards = document.querySelectorAll('.card');
+            cards[gameState.selectedCard].remove();
+            gameState.hand.splice(gameState.selectedCard, 1);
+            
+            // 重置选择
+            gameState.selectedCard = null;
+            gameState.selectedLayer = null;
+            document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('current'));
+            
+            // 下一回合
+            nextTurn();
+        }
+        
+        // 跳过回合
+        function skipTurn() {
+            addLog(`玩家${gameState.currentPlayer + 1} 跳过回合`, 'action');
+            nextTurn();
+        }
+        
+        // 认输
+        function surrender() {
+            if (confirm('确定要认输吗？')) {
+                addLog(`玩家${gameState.currentPlayer + 1} 认输！`, 'result');
+                showToast('你认输了！', 'error');
+            }
+        }
+        
+        // 下一回合
+        function nextTurn() {
+            gameState.currentPlayer = (gameState.currentPlayer + 1) % 4;
+            if (gameState.currentPlayer === 0) {
+                gameState.round++;
+                document.getElementById('roundCount').textContent = gameState.round;
+            }
+            
+            document.getElementById('currentPlayer').textContent = gameState.players[gameState.currentPlayer].name;
+            updatePlayersList();
+            resetTimer();
+        }
+        
+        // 更新玩家列表
+        function updatePlayersList() {
+            const playersList = document.getElementById('playersList');
+            const colors = [
+                'linear-gradient(135deg, #00ff00, #00aa00)',
+                'linear-gradient(135deg, #0088ff, #0055aa)',
+                'linear-gradient(135deg, #ff0088, #aa0055)',
+                'linear-gradient(135deg, #ff8800, #aa5500)'
+            ];
+            const borderColors = ['#00ff00', '#0088ff', '#ff0088', '#ff8800'];
+            
+            playersList.innerHTML = gameState.players.map((player, index) => `
+                <div class="player-item">
+                    <div class="player-avatar ${index === gameState.currentPlayer ? 'current-turn' : ''}" 
+                         style="background: ${colors[index]}; border-color: ${borderColors[index]};"></div>
+                    <div class="player-info">
+                        <div class="player-name">${player.name}</div>
+                        <div class="player-layer">第 ${player.layer + 1} 层</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 计时器
+        function startTimer() {
+            setInterval(() => {
+                gameState.timer--;
+                if (gameState.timer <= 0) {
+                    gameState.timer = 30;
+                    addLog(`玩家${gameState.currentPlayer + 1} 时间到，自动跳过`, 'warning');
+                    nextTurn();
+                }
+                document.getElementById('turnTimer').textContent = gameState.timer;
+            }, 1000);
+        }
+        
+        function resetTimer() {
+            gameState.timer = 30;
+            document.getElementById('turnTimer').textContent = gameState.timer;
+        }
+        
+        // 添加日志
+        function addLog(message, type = 'system') {
+            const logContent = document.getElementById('gameLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContent.insertBefore(entry, logContent.firstChild);
+            
+            // 限制日志数量
+            while (logContent.children.length > 20) {
+                logContent.removeChild(logContent.lastChild);
+            }
+        }
+        
+        // 显示提示
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 显示模态框
+        function showModal(title, text) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalText').textContent = text;
+            document.getElementById('gameModal').classList.add('active');
+        }
+        
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('active');
+        }
+        
+        // 键盘快捷键
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case ' ':
+                    e.preventDefault();
+                    playCard();
+                    break;
+                case 's':
+                case 'S':
+                    skipTurn();
+                    break;
+                case 'r':
+                case 'R':
+                    tower3d.resetView();
+                    break;
+                case 'ArrowLeft':
+                    tower3d.rotateLeft();
+                    break;
+                case 'ArrowRight':
+                    tower3d.rotateRight();
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>

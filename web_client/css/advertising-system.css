@@ -1,0 +1,558 @@
+/**
+ * 广告系统样式 - Advertising System Styles
+ * 命运塔游戏广告组件样式
+ */
+
+/* ==========================================
+   广告容器基础样式
+   ========================================== */
+.ad-container {
+    position: relative;
+    display: none;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.ad-container.active {
+    display: block;
+}
+
+/* 广告标签 */
+.ad-label {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 10px;
+    padding: 2px 6px;
+    background: rgba(0, 0, 0, 0.6);
+    color: rgba(255, 255, 255, 0.8);
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* ==========================================
+   横幅广告样式
+   ========================================== */
+.ad-wrapper.ad-banner {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+}
+
+.ad-banner .ad-image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ad-banner .ad-image:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.ad-banner .ad-link {
+    display: block;
+    text-decoration: none;
+}
+
+.ad-banner .ad-cta {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.ad-banner .ad-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+/* ==========================================
+   文字广告样式
+   ========================================== */
+.ad-wrapper.ad-text {
+    padding: 12px 16px;
+    background: rgba(99, 102, 241, 0.1);
+    border-left: 3px solid #6366f1;
+    border-radius: 0 8px 8px 0;
+}
+
+.ad-text .ad-text-link {
+    color: #818cf8;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.ad-text .ad-text-link:hover {
+    color: #a5b4fc;
+    text-decoration: underline;
+}
+
+.ad-text .ad-label {
+    position: static;
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 9px;
+}
+
+/* ==========================================
+   视频广告样式
+   ========================================== */
+.ad-wrapper.ad-video {
+    position: relative;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.ad-video-player {
+    width: 100%;
+    display: block;
+}
+
+.skip-ad-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #1f2937;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 20;
+}
+
+.skip-ad-btn:not(:disabled):hover {
+    background: white;
+    transform: scale(1.05);
+}
+
+.skip-ad-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.ad-video-cta {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 15;
+}
+
+.ad-cta-btn {
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.ad-cta-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+}
+
+/* ==========================================
+   原生广告样式
+   ========================================== */
+.ad-wrapper.ad-native {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.native-ad-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.native-ad-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.native-ad-text {
+    flex: 1;
+}
+
+.native-ad-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin-bottom: 4px;
+}
+
+.native-ad-desc {
+    font-size: 13px;
+    color: #94a3b8;
+    line-height: 1.4;
+}
+
+.native-ad-cta {
+    padding: 8px 16px;
+    background: #6366f1;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.native-ad-cta:hover {
+    background: #4f46e5;
+    transform: translateY(-1px);
+}
+
+/* ==========================================
+   摩天楼广告样式
+   ========================================== */
+.ad-wrapper.ad-skyscraper {
+    width: 160px;
+    position: sticky;
+    top: 20px;
+}
+
+.ad-skyscraper .ad-image {
+    width: 100%;
+    border-radius: 8px;
+    transition: transform 0.2s;
+}
+
+.ad-skyscraper .ad-image:hover {
+    transform: scale(1.02);
+}
+
+/* ==========================================
+   激励视频样式
+   ========================================== */
+.ad-wrapper.ad-reward-video {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+    border-radius: 16px;
+    overflow: hidden;
+    max-width: 480px;
+}
+
+.reward-video-header {
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.reward-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.reward-video-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.reward-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reward-icon {
+    font-size: 24px;
+}
+
+.reward-text {
+    font-size: 14px;
+    color: #fbbf24;
+    font-weight: 500;
+}
+
+.claim-reward-btn {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.claim-reward-btn:not(:disabled):hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+}
+
+.claim-reward-btn:disabled {
+    background: #475569;
+    cursor: not-allowed;
+}
+
+/* ==========================================
+   全屏广告样式
+   ========================================== */
+.ad-container[data-ad-placement="loading-screen"],
+.ad-container[data-ad-placement="matchmaking-wait"] {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ad-container[data-ad-placement="loading-screen"] .ad-wrapper,
+.ad-container[data-ad-placement="matchmaking-wait"] .ad-wrapper {
+    width: 100%;
+    max-width: 800px;
+    max-height: 100%;
+}
+
+/* ==========================================
+   奖励通知样式
+   ========================================== */
+.ad-reward-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    z-index: 10000;
+    transition: transform 0.3s ease;
+}
+
+.ad-reward-notification.show {
+    transform: translateX(-50%) translateY(0);
+}
+
+.reward-popup {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
+}
+
+.reward-popup .reward-icon {
+    font-size: 28px;
+}
+
+.reward-popup .reward-text {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* ==========================================
+   特定点位样式
+   ========================================== */
+
+/* 主菜单底部横幅 */
+.ad-main-menu-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 12px;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+    z-index: 100;
+}
+
+.ad-main-menu-banner .ad-wrapper {
+    max-width: 728px;
+    margin: 0 auto;
+}
+
+/* 暂停菜单 */
+.ad-pause-menu {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    z-index: 50;
+}
+
+/* 胜利/失败结算页 */
+.ad-victory-screen,
+.ad-defeat-screen {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+}
+
+/* 商店侧边栏 */
+.ad-shop-sidebar {
+    position: absolute;
+    top: 80px;
+    right: 20px;
+    z-index: 40;
+}
+
+/* 排行榜 */
+.ad-leaderboard-page {
+    margin-bottom: 20px;
+}
+
+/* 观战模式 */
+.ad-spectator-sidebar {
+    position: absolute;
+    top: 100px;
+    right: 20px;
+    z-index: 40;
+}
+
+/* ==========================================
+   响应式适配
+   ========================================== */
+@media (max-width: 768px) {
+    .ad-wrapper.ad-native {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .native-ad-content {
+        flex-direction: column;
+    }
+    
+    .ad-wrapper.ad-skyscraper {
+        width: 100%;
+        max-width: 300px;
+        position: static;
+    }
+    
+    .ad-pause-menu,
+    .ad-shop-sidebar,
+    .ad-spectator-sidebar {
+        position: relative;
+        right: auto;
+        top: auto;
+        transform: none;
+        margin: 16px auto;
+    }
+}
+
+/* ==========================================
+   动画效果
+   ========================================== */
+@keyframes adFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ad-container {
+    animation: adFadeIn 0.3s ease;
+}
+
+/* 关闭按钮 */
+.ad-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 30;
+    transition: all 0.2s;
+}
+
+.ad-close:hover {
+    background: rgba(239, 68, 68, 0.8);
+    transform: scale(1.1);
+}
+
+/* ==========================================
+   暗色主题优化
+   ========================================== */
+[data-theme="dark"] .ad-wrapper.ad-native {
+    background: rgba(30, 41, 59, 0.8);
+}
+
+[data-theme="dark"] .ad-text .ad-text-link {
+    color: #818cf8;
+}
+
+/* ==========================================
+   加载占位符
+   ========================================== */
+.ad-placeholder {
+    background: linear-gradient(90deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* ==========================================
+   性能优化
+   ========================================== */
+.ad-container img,
+.ad-container video {
+    will-change: transform;
+}
+
+.ad-container:not(.active) img,
+.ad-container:not(.active) video {
+    display: none;
+}

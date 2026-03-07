@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📢 命运塔广告管理系统</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        
+        /* 头部导航 */
+        .admin-header {
+            background: linear-gradient(135deg, var(--bg-card) 0%, #252f47 100%);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .admin-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .admin-logo .icon {
+            font-size: 1.5rem;
+        }
+        
+        .admin-nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        .nav-btn:hover,
+        .nav-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .admin-user {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        /* 主内容区 */
+        .admin-main {
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .stat-card.primary { border-left: 4px solid var(--primary); }
+        .stat-card.success { border-left: 4px solid var(--success); }
+        .stat-card.warning { border-left: 4px solid var(--warning); }
+        .stat-card.info { border-left: 4px solid var(--info); }
+        
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .stat-icon.primary { background: rgba(99, 102, 241, 0.2); }
+        .stat-icon.success { background: rgba(16, 185, 129, 0.2); }
+        .stat-icon.warning { background: rgba(245, 158, 11, 0.2); }
+        .stat-icon.info { background: rgba(59, 130, 246, 0.2); }
+        
+        .stat-trend {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-weight: 500;
+        }
+        
+        .stat-trend.up {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+        
+        .stat-trend.down {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        /* 面板 */
+        .panel {
+            background: var(--bg-card);
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .panel-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .panel-body {
+            padding: 1.5rem;
+        }
+        
+        /* 按钮 */
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .btn-secondary:hover {
+            background: #475569;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        
+        /* 表格 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .data-table th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .data-table tr:hover {
+            background: var(--bg-hover);
+        }
+        
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* 开关 */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--bg-hover);
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--success);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        
+        /* 状态标签 */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-badge.active {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+        
+        .status-badge.paused {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+        
+        .status-badge.ended {
+            background: rgba(148, 163, 184, 0.2);
+            color: var(--text-secondary);
+        }
+        
+        /* 标签 */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: var(--bg-hover);
+            color: var(--text-secondary);
+        }
+        
+        /* 模态框 */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: var(--bg-card);
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow: hidden;
+            animation: modalSlide 0.3s ease;
+        }
+        
+        @keyframes modalSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+        
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            max-height: calc(90vh - 140px);
+        }
+        
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+        
+        /* 表单 */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+        
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .form-hint {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.375rem;
+        }
+        
+        /* 图表区域 */
+        .chart-container {
+            height: 300px;
+            background: var(--bg-dark);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+        }
+        
+        /* 标签页 */
+        .tabs {
+            display: flex;
+            gap: 0.25rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.25rem;
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+        
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* 搜索栏 */
+        .search-bar {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 0.625rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+        
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        /* 预览区域 */
+        .ad-preview {
+            background: var(--bg-dark);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            border: 2px dashed var(--border);
+        }
+        
+        .ad-preview-content {
+            text-align: center;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .admin-main {
+                padding: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .data-table {
+                font-size: 0.85rem;
+            }
+            
+            .data-table th,
+            .data-table td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+        
+        /* 广告点位特殊样式 */
+        .placement-type-icon {
+            font-size: 1.25rem;
+        }
+        
+        .placement-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .placement-name {
+            font-weight: 500;
+        }
+        
+        .placement-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        /* 活动卡片 */
+        .campaigns-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .campaign-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .campaign-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .campaign-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .campaign-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .campaign-type {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+        
+        .campaign-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        .campaign-stat {
+            text-align: center;
+        }
+        
+        .campaign-stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .campaign-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        .campaign-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        /* 进度条 */
+        .progress-bar {
+            height: 6px;
+            background: var(--bg-hover);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <!-- 头部导航 -->
+    <header class="admin-header">
+        <div class="admin-logo">
+            <span class="icon">📢</span>
+            <span>命运塔广告管理系统</span>
+        </div>
+        <nav class="admin-nav">
+            <button class="nav-btn active" data-tab="overview">📊 总览</button>
+            <button class="nav-btn" data-tab="placements">📍 广告点位</button>
+            <button class="nav-btn" data-tab="campaigns">🎯 广告活动</button>
+            <button class="nav-btn" data-tab="analytics">📈 数据分析</button>
+            <button class="nav-btn" data-tab="settings">⚙️ 设置</button>
+        </nav>
+        
+        <div class="admin-user">
+            <span>管理员</span>
+            <div class="user-avatar">A</div>
+        </div>
+    </header>
+    
+    <!-- 主内容 -->
+    <main class="admin-main">
+        <!-- 总览页面 -->
+        <div id="overview-tab" class="tab-content active">
+            <!-- 统计卡片 -->
+            <div class="stats-grid">
+                <div class="stat-card primary">
+                    <div class="stat-header">
+                        <div class="stat-icon primary">👁️</div>
+                        <span class="stat-trend up">↑ 12.5%</span>
+                    </div>
+                    <div class="stat-value" id="total-impressions">0</div>
+                    <div class="stat-label">今日展示次数</div>
+                </div>
+                
+                <div class="stat-card success">
+                    <div class="stat-header">
+                        <div class="stat-icon success">🖱️</div>
+                        <span class="stat-trend up">↑ 8.3%</span>
+                    </div>
+                    <div class="stat-value" id="total-clicks">0</div>
+                    <div class="stat-label">今日点击次数</div>
+                </div>
+                
+                <div class="stat-card warning">
+                    <div class="stat-header">
+                        <div class="stat-icon warning">📊</div>
+                        <span class="stat-trend down">↓ 2.1%</span>
+                    </div>
+                    <div class="stat-value" id="ctr-rate">0%</div>
+                    <div class="stat-label">点击率 (CTR)</div>
+                </div>
+                
+                <div class="stat-card info">
+                    <div class="stat-header">
+                        <div class="stat-icon info">💰</div>
+                        <span class="stat-trend up">↑ 15.7%</span>
+                    </div>
+                    <div class="stat-value">¥<span id="daily-revenue">0</span></div>
+                    <div class="stat-label">今日广告收入</div>
+                </div>
+            </div>
+            
+            <!-- 实时趋势图表 -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">📈 今日实时趋势</div>
+                    <div class="panel-actions">
+                        <button class="btn btn-sm btn-secondary">24小时</button>
+                        <button class="btn btn-sm btn-secondary">7天</button>
+                        <button class="btn btn-sm btn-secondary">30天</button>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div class="chart-container" id="trend-chart">
+                        <!-- 这里将渲染图表 -->
+                        <div style="text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+                            <div>实时数据图表加载中...</div>
+                            <div style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.7;">
+                                展示量: <span id="chart-impressions">--</span> | 
+                                点击量: <span id="chart-clicks">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 热门广告点位 -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">🔥 热门广告点位 TOP 5</div>
+                    <button class="btn btn-sm btn-secondary" onclick="switchTab('placements')">查看全部</button>
+                </div>
+                <div class="panel-body">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>点位名称</th>
+                                <th>展示次数</th>
+                                <th>点击次数</th>
+                                <th>点击率</th>
+                                <th>收入</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-placements">
+                            <!-- 动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 活跃活动 -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">🎯 活跃广告活动</div>
+                    <button class="btn btn-primary btn-sm" onclick="openCampaignModal()">+ 新建活动</button>
+                </div>
+                <div class="panel-body">
+                    <div class="campaigns-grid" id="active-campaigns">
+                        <!-- 动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 广告点位页面 -->
+        <div id="placements-tab" class="tab-content">
+            <div class="search-bar">
+                <input type="text" class="search-input" placeholder="🔍 搜索广告点位..." id="placement-search">
+                <button class="btn btn-secondary">筛选</button>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">📍 17个广告点位管理</div>
+                    <div class="panel-actions">
+                        <button class="btn btn-sm btn-secondary" onclick="enableAllPlacements()">全部启用</button>
+                        <button class="btn btn-sm btn-secondary" onclick="disableAllPlacements()">全部禁用</button>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>点位名称</th>
+                                <th>类型</th>
+                                <th>尺寸</th>
+                                <th>状态</th>
+                                <th>展示次数</th>
+                                <th>点击率</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="placements-table">
+                            <!-- 动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 广告活动页面 -->
+        <div id="campaigns-tab" class="tab-content">
+            <div class="search-bar">
+                <input type="text" class="search-input" placeholder="🔍 搜索广告活动..." id="campaign-search">
+                <button class="btn btn-primary" onclick="openCampaignModal()">+ 新建广告活动</button>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab-btn active" data-campaign-tab="all">全部</button>
+                <button class="tab-btn" data-campaign-tab="active">进行中</button>
+                <button class="tab-btn" data-campaign-tab="scheduled">待开始</button>
+                <button class="tab-btn" data-campaign-tab="ended">已结束</button>
+            </div>
+            
+            <div id="campaigns-list" class="campaigns-grid">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 数据分析页面 -->
+        <div id="analytics-tab" class="tab-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="avg-cpm">¥5.00</div>
+                    <div class="stat-label">平均CPM</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avg-cpc">¥0.50</div>
+                    <div class="stat-label">平均CPC</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="fill-rate">85%</div>
+                    <div class="stat-label">填充率</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="viewability">72%</div>
+                    <div class="stat-label">可见率</div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">📊 详细数据分析</div>
+                </div>
+                <div class="panel-body">
+                    <div class="chart-container" style="height: 400px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">📈</div>
+                            <div>详细分析图表即将推出</div>
+                            <div style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.7;">
+                                包含: 时段分析 | 地域分析 | 用户画像 | 转化率漏斗
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 设置页面 -->
+        <div id="settings-tab" class="tab-content">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">⚙️ 系统设置</div>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label class="form-label">默认CPM (每千次展示费用)</label>
+                        <input type="number" class="form-input" id="default-cpm" value="5" step="0.1">
+                        <div class="form-hint">单位: 元</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">默认CPC (每次点击费用)</label>
+                        <input type="number" class="form-input" id="default-cpc" value="0.5" step="0.01">
+                        <div class="form-hint">单位: 元</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">每小时最大广告展示数</label>
+                        <input type="number" class="form-input" id="freq-cap" value="10">
+                        <div class="form-hint">防止对用户造成骚扰</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">激励视频奖励配置</label>
+                        <div class="form-row">
+                            <input type="number" class="form-input" placeholder="奖励数量" value="100">
+                            <select class="form-select">
+                                <option value="coins">金币</option>
+                                <option value="gems">宝石</option>
+                                <option value="energy">体力</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="saveSettings()">保存设置</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- 新建/编辑活动模态框 -->
+    <div class="modal-overlay" id="campaign-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">🎯 新建广告活动</div>
+                <button class="modal-close" onclick="closeCampaignModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">活动名称 *</label>
+                    <input type="text" class="form-input" id="camp-name" placeholder="输入活动名称">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">广告类型</label>
+                        <select class="form-select" id="camp-type">
+                            <option value="banner">横幅广告</option>
+                            <option value="video">视频广告</option>
+                            <option value="native">原生广告</option>
+                            <option value="text">文字广告</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">广告点位</label>
+                        <select class="form-select" id="camp-placement" multiple size="4">
+                            <!-- 动态生成 -->
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">广告素材</label>
+                    <input type="text" class="form-input" id="camp-image" placeholder="图片/视频URL">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">标题</label>
+                    <input type="text" class="form-input" id="camp-title" placeholder="广告标题">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">描述</label>
+                    <textarea class="form-textarea" id="camp-desc" placeholder="广告描述"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">跳转链接</label>
+                    <input type="url" class="form-input" id="camp-link" placeholder="https://...">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">开始时间</label>
+                        <input type="datetime-local" class="form-input" id="camp-start">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">结束时间</label>
+                        <input type="datetime-local" class="form-input" id="camp-end">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">每日预算 (元)</label>
+                        <input type="number" class="form-input" id="camp-budget" value="1000">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">CPM (元)</label>
+                        <input type="number" class="form-input" id="camp-cpm" value="5" step="0.1">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">预览</label>
+                    <div class="ad-preview">
+                        <div class="ad-preview-content">
+                            <div style="font-size: 3rem; margin-bottom: 0.5rem;">🖼️</div>
+                            <div>广告预览将在这里显示</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCampaignModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveCampaign()">保存活动</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="../js/advertising-system.js"></script>
+    <script>
+        // ==========================================
+        // 广告管理器
+        // ==========================================
+        class AdManager {
+            constructor() {
+                this.adSystem = window.adSystem;
+                this.placements = AD_PLACEMENTS;
+                this.campaigns = this.loadCampaigns();
+                this.currentTab = 'overview';
+                this.init();
+            }
+            
+            init() {
+                this.bindEvents();
+                this.loadOverviewData();
+                this.renderPlacements();
+                this.renderCampaigns();
+                this.renderPlacementOptions();
+            }
+            
+            bindEvents() {
+                // 导航切换
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const tab = btn.dataset.tab;
+                        this.switchTab(tab);
+                    });
+                });
+                
+                // 活动筛选
+                document.querySelectorAll('[data-campaign-tab]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('[data-campaign-tab]').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.renderCampaigns(btn.dataset.campaignTab);
+                    });
+                });
+                
+                // 搜索
+                document.getElementById('placement-search')?.addEventListener('input', (e) => {
+                    this.filterPlacements(e.target.value);
+                });
+                
+                document.getElementById('campaign-search')?.addEventListener('input', (e) => {
+                    this.filterCampaigns(e.target.value);
+                });
+            }
+            
+            switchTab(tab) {
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.tab === tab);
+                });
+                
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.toggle('active', content.id === `${tab}-tab`);
+                });
+                
+                this.currentTab = tab;
+            }
+            
+            // 加载总览数据
+            loadOverviewData() {
+                const stats = this.adSystem?.getStats() || {
+                    sessionImpressions: Math.floor(Math.random() * 5000) + 1000,
+                    sessionClicks: Math.floor(Math.random() * 500) + 100,
+                    revenue: (Math.random() * 1000 + 200).toFixed(2)
+                };
+                
+                document.getElementById('total-impressions').textContent = stats.sessionImpressions.toLocaleString();
+                document.getElementById('total-clicks').textContent = stats.sessionClicks.toLocaleString();
+                document.getElementById('daily-revenue').textContent = stats.revenue;
+                
+                const ctr = stats.sessionImpressions > 0 
+                    ? ((stats.sessionClicks / stats.sessionImpressions) * 100).toFixed(2)
+                    : 0;
+                document.getElementById('ctr-rate').textContent = ctr + '%';
+                
+                // 渲染热门点位
+                this.renderTopPlacements();
+                
+                // 渲染活跃活动
+                this.renderActiveCampaigns();
+            }
+            
+            // 渲染广告点位表格
+            renderPlacements() {
+                const tbody = document.getElementById('placements-table');
+                if (!tbody) return;
+                
+                const typeIcons = {
+                    banner: '📰',
+                    image: '🖼️',
+                    video: '🎬',
+                    text: '📝',
+                    native: '🌿',
+                    skyscraper: '🏢',
+                    'reward-video': '🎁'
+                };
+                
+                tbody.innerHTML = Object.values(this.placements).map(p => {
+                    const typeStr = p.type.map(t => AD_TYPES[t]?.name || t).join(', ');
+                    const icon = typeIcons[p.type[0]] || '📰';
+                    
+                    return `
+                        <tr data-placement-id="${p.id}">
+                            <td>
+                                <div class="placement-info">
+                                    <span class="placement-name">${icon} ${p.name}</span>
+                                    <span class="placement-desc">${p.description || ''}</span>
+                                </div>
+                            </td>
+                            <td>${typeStr}</td>
+                            <td><span class="tag">${p.size}</span></td>
+                            <td>
+                                <label class="switch">
+                                    <input type="checkbox" ${p.enabled ? 'checked' : ''} 
+                                           onchange="togglePlacement('${p.id}', this.checked)">
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
+                            <td>${Math.floor(Math.random() * 10000).toLocaleString()}</td>
+                            <td>${(Math.random() * 5 + 1).toFixed(2)}%</td>
+                            <td>
+                                <button class="btn btn-sm btn-secondary" onclick="editPlacement('${p.id}')">编辑</button>
+                                <button class="btn btn-sm btn-secondary" onclick="viewPlacementStats('${p.id}')">统计</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+            
+            filterPlacements(query) {
+                const rows = document.querySelectorAll('#placements-table tr');
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(query.toLowerCase()) ? '' : 'none';
+                });
+            }
+            
+            // 渲染热门点位
+            renderTopPlacements() {
+                const tbody = document.getElementById('top-placements');
+                if (!tbody) return;
+                
+                const placements = Object.values(this.placements)
+                    .map(p => ({
+                        ...p,
+                        impressions: Math.floor(Math.random() * 5000) + 500,
+                        clicks: Math.floor(Math.random() * 500) + 50,
+                        revenue: (Math.random() * 500 + 50).toFixed(2)
+                    }))
+                    .sort((a, b) => b.impressions - a.impressions)
+                    .slice(0, 5);
+                
+                tbody.innerHTML = placements.map((p, i) => {
+                    const ctr = ((p.clicks / p.impressions) * 100).toFixed(2);
+                    return `
+                        <tr>
+                            <td><strong>#${i + 1}</strong></td>
+                            <td>${p.name}</td>
+                            <td>${p.impressions.toLocaleString()}</td>
+                            <td>${p.clicks.toLocaleString()}</td>
+                            <td>${ctr}%</td>
+                            <td>¥${p.revenue}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+            
+            // 渲染活动
+            renderCampaigns(filter = 'all') {
+                const container = document.getElementById('campaigns-list') || document.getElementById('active-campaigns');
+                if (!container) return;
+                
+                let campaigns = this.campaigns;
+                
+                if (filter !== 'all') {
+                    campaigns = campaigns.filter(c => c.status === filter);
+                }
+                
+                if (container.id === 'active-campaigns') {
+                    campaigns = campaigns.filter(c => c.status === 'active').slice(0, 4);
+                }
+                
+                if (campaigns.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1/-1;">
+                            <div class="empty-icon">🎯</div>
+                            <div>暂无广告活动</div>
+                            <button class="btn btn-primary" style="margin-top: 1rem;" onclick="openCampaignModal()">创建活动</button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const typeIcons = {
+                    banner: '📰',
+                    video: '🎬',
+                    native: '🌿',
+                    text: '📝'
+                };
+                
+                container.innerHTML = campaigns.map(c => {
+                    const progress = Math.random() * 100;
+                    const impressions = Math.floor(Math.random() * 10000);
+                    const clicks = Math.floor(impressions * 0.03);
+                    
+                    return `
+                        <div class="campaign-card">
+                            <div class="campaign-header">
+                                <div>
+                                    <div class="campaign-title">${typeIcons[c.type] || '📰'} ${c.name}</div>
+                                    <div class="campaign-type">${AD_TYPES[c.type]?.name || c.type}</div>
+                                </div>
+                                <span class="status-badge ${c.status}">${this.getStatusText(c.status)}</span>
+                            </div>
+                            
+                            <div style="margin-bottom: 0.75rem;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.25rem;">
+                                    <span>预算使用</span>
+                                    <span>${progress.toFixed(0)}%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${progress}%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="campaign-stats">
+                                <div class="campaign-stat">
+                                    <div class="campaign-stat-value">${impressions.toLocaleString()}</div>
+                                    <div class="campaign-stat-label">展示</div>
+                                </div>
+                                <div class="campaign-stat">
+                                    <div class="campaign-stat-value">${clicks.toLocaleString()}</div>
+                                    <div class="campaign-stat-label">点击</div>
+                                </div>
+                                <div class="campaign-stat">
+                                    <div class="campaign-stat-value">${(clicks/impressions*100).toFixed(1)}%</div>
+                                    <div class="campaign-stat-label">CTR</div>
+                                </div>
+                            </div>
+                            
+                            <div class="campaign-actions">
+                                <button class="btn btn-sm btn-secondary" onclick="editCampaign('${c.id}')">编辑</button>
+                                <button class="btn btn-sm btn-secondary" onclick="viewCampaignStats('${c.id}')">数据</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteCampaign('${c.id}')">删除</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            filterCampaigns(query) {
+                const cards = document.querySelectorAll('.campaign-card');
+                cards.forEach(card => {
+                    const text = card.textContent.toLowerCase();
+                    card.style.display = text.includes(query.toLowerCase()) ? '' : 'none';
+                });
+            }
+            
+            getStatusText(status) {
+                const map = { active: '进行中', paused: '已暂停', ended: '已结束', scheduled: '待开始' };
+                return map[status] || status;
+            }
+            
+            // 渲染点位选项
+            renderPlacementOptions() {
+                const select = document.getElementById('camp-placement');
+                if (!select) return;
+                
+                select.innerHTML = Object.values(this.placements).map(p => 
+                    `<option value="${p.id}">${p.name}</option>`
+                ).join('');
+            }
+            
+            loadCampaigns() {
+                try {
+                    const saved = localStorage.getItem('ad_manager_campaigns');
+                    if (saved) {
+                        return JSON.parse(saved);
+                    }
+                } catch (e) {
+                    console.error('加载活动失败:', e);
+                }
+                
+                // 示例数据
+                return [
+                    {
+                        id: 'camp_001',
+                        name: '新手引导推广',
+                        type: 'banner',
+                        status: 'active',
+                        budget: 1000,
+                        start: Date.now(),
+                        end: Date.now() + 30 * 24 * 60 * 60 * 1000
+                    },
+                    {
+                        id: 'camp_002',
+                        name: 'VIP会员促销',
+                        type: 'video',
+                        status: 'active',
+                        budget: 2000,
+                        start: Date.now(),
+                        end: Date.now() + 14 * 24 * 60 * 60 * 1000
+                    },
+                    {
+                        id: 'camp_003',
+                        name: '春节特别活动',
+                        type: 'native',
+                        status: 'scheduled',
+                        budget: 5000,
+                        start: Date.now() + 7 * 24 * 60 * 60 * 1000,
+                        end: Date.now() + 21 * 24 * 60 * 60 * 1000
+                    }
+                ];
+            }
+            
+            saveCampaigns() {
+                localStorage.setItem('ad_manager_campaigns', JSON.stringify(this.campaigns));
+            }
+            
+            addCampaign(campaign) {
+                campaign.id = 'camp_' + Date.now();
+                this.campaigns.push(campaign);
+                this.saveCampaigns();
+                this.renderCampaigns();
+            }
+            
+            deleteCampaign(id) {
+                if (confirm('确定要删除这个活动吗？')) {
+                    this.campaigns = this.campaigns.filter(c => c.id !== id);
+                    this.saveCampaigns();
+                    this.renderCampaigns();
+                }
+            }
+        }
+        
+        // 初始化管理器
+        let adManager;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            adManager = new AdManager();
+        });
+        
+        // ==========================================
+        // 全局函数
+        // ==========================================
+        
+        function switchTab(tab) {
+            adManager?.switchTab(tab);
+        }
+        
+        function togglePlacement(id, enabled) {
+            if (AD_PLACEMENTS[id]) {
+                AD_PLACEMENTS[id].enabled = enabled;
+                console.log(`${enabled ? '✅' : '⏸️'} 广告点位 ${AD_PLACEMENTS[id].name} 已${enabled ? '启用' : '禁用'}`);
+            }
+        }
+        
+        function enableAllPlacements() {
+            Object.values(AD_PLACEMENTS).forEach(p => p.enabled = true);
+            adManager?.renderPlacements();
+        }
+        
+        function disableAllPlacements() {
+            Object.values(AD_PLACEMENTS).forEach(p => p.enabled = false);
+            adManager?.renderPlacements();
+        }
+        
+        function editPlacement(id) {
+            const p = AD_PLACEMENTS[id];
+            alert(`编辑点位: ${p.name}\n\n这里将打开点位编辑界面`);
+        }
+        
+        function viewPlacementStats(id) {
+            const p = AD_PLACEMENTS[id];
+            alert(`点位统计: ${p.name}\n\n展示: ${Math.floor(Math.random() * 10000)}\n点击: ${Math.floor(Math.random() * 1000)}\nCTR: ${(Math.random() * 5).toFixed(2)}%`);
+        }
+        
+        function openCampaignModal() {
+            document.getElementById('campaign-modal').classList.add('active');
+        }
+        
+        function closeCampaignModal() {
+            document.getElementById('campaign-modal').classList.remove('active');
+        }
+        
+        function saveCampaign() {
+            const name = document.getElementById('camp-name').value;
+            if (!name) {
+                alert('请输入活动名称');
+                return;
+            }
+            
+            const campaign = {
+                name: name,
+                type: document.getElementById('camp-type').value,
+                status: 'active',
+                budget: parseInt(document.getElementById('camp-budget').value) || 1000,
+                start: new Date(document.getElementById('camp-start').value || Date.now()).getTime(),
+                end: new Date(document.getElementById('camp-end').value || Date.now() + 30 * 24 * 60 * 60 * 1000).getTime()
+            };
+            
+            adManager?.addCampaign(campaign);
+            closeCampaignModal();
+            
+            // 清空表单
+            document.getElementById('camp-name').value = '';
+            document.getElementById('camp-budget').value = '1000';
+        }
+        
+        function editCampaign(id) {
+            const campaign = adManager?.campaigns.find(c => c.id === id);
+            if (campaign) {
+                document.getElementById('camp-name').value = campaign.name;
+                document.getElementById('camp-type').value = campaign.type;
+                document.getElementById('camp-budget').value = campaign.budget;
+                openCampaignModal();
+            }
+        }
+        
+        function deleteCampaign(id) {
+            adManager?.deleteCampaign(id);
+        }
+        
+        function viewCampaignStats(id) {
+            const campaign = adManager?.campaigns.find(c => c.id === id);
+            if (campaign) {
+                alert(`活动数据: ${campaign.name}\n\n展示: ${Math.floor(Math.random() * 20000)}\n点击: ${Math.floor(Math.random() * 2000)}\n收入: ¥${(Math.random() * 2000).toFixed(2)}`);
+            }
+        }
+        
+        function saveSettings() {
+            const cpm = document.getElementById('default-cpm').value;
+            const cpc = document.getElementById('default-cpc').value;
+            const cap = document.getElementById('freq-cap').value;
+            
+            localStorage.setItem('ad_settings', JSON.stringify({ cpm, cpc, cap }));
+            alert('设置已保存！');
+        }
+        
+        // 点击模态框外部关闭
+        document.getElementById('campaign-modal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'campaign-modal') {
+                closeCampaignModal();
+            }
+        });
+    </script>
+</body>
+</html>
