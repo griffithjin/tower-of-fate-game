@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心 - 命运之塔</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0d1b2a 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 215, 0, 0.2);
+            border: 1px solid #ffd700;
+            border-radius: 20px;
+            color: #ffd700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255, 215, 0, 0.4);
+        }
+        
+        .profile-section {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .profile-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .avatar-large {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            border: 4px solid #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            position: relative;
+        }
+        
+        .avatar-frame {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            background: linear-gradient(45deg, #ffd700, #ff6b6b) border-box;
+            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+        }
+        
+        .player-name {
+            font-size: 24px;
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        
+        .player-id {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 20px;
+        }
+        
+        .vip-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            background: linear-gradient(45deg, #ffd700, #ff6b6b);
+            color: #000;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .currency-display {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .currency-item {
+            text-align: center;
+        }
+        
+        .currency-icon {
+            font-size: 30px;
+            margin-bottom: 5px;
+        }
+        
+        .currency-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .currency-label {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            border-color: #ffd700;
+            transform: translateY(-5px);
+        }
+        
+        .stat-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            color: #ffd700;
+            margin: 30px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        
+        .inventory-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .inventory-item:hover {
+            border-color: #ffd700;
+            transform: scale(1.05);
+        }
+        
+        .inventory-item.equipped {
+            border-color: #0f0;
+            background: rgba(0, 255, 0, 0.1);
+        }
+        
+        .item-icon {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+        
+        .item-name {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .item-type {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .shop-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .shop-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .shop-item:hover {
+            border-color: #ffd700;
+            transform: translateY(-5px);
+        }
+        
+        .shop-item.owned {
+            opacity: 0.5;
+            border-color: #0f0;
+        }
+        
+        .item-price {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #ffd700;
+        }
+        
+        .buy-btn {
+            margin-top: 10px;
+            padding: 8px 20px;
+            background: linear-gradient(45deg, #ffd700, #ff6b6b);
+            border: none;
+            border-radius: 20px;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .buy-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .buy-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .daily-reward {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 107, 107, 0.2));
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            border: 2px solid #ffd700;
+            margin-bottom: 30px;
+        }
+        
+        .reward-icon {
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+        
+        .reward-amount {
+            font-size: 36px;
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        .reward-btn {
+            margin-top: 20px;
+            padding: 15px 40px;
+            background: linear-gradient(45deg, #ffd700, #ff6b6b);
+            border: none;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #000;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .reward-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+        }
+        
+        .reward-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="goBack()">← 返回游戏</button>
+    
+    <div class="container">
+        <div class="header">
+            <h1>👤 个人中心</h1>
+        </div>
+        
+        <!-- 每日奖励 -->
+        <div class="daily-reward" id="dailyRewardSection">
+            <div class="reward-icon">🎁</div>
+            <div>连续登录 <span id="streakDays">1</span> 天</div>
+            <div class="reward-amount">+<span id="rewardAmount">100</span> 金币</div>
+            <div style="color: #888; font-size: 14px; margin-top: 10px;">
+                明天可领: <span id="nextReward">150</span> 金币
+            </div>
+            <button class="reward-btn" id="claimBtn" onclick="claimDailyReward()">
+                领取每日奖励
+            </button>
+        </div>
+        
+        <!-- 个人信息 -->
+        <div class="profile-section">
+            <div class="profile-card">
+                <div class="avatar-large">
+                    <div class="avatar-frame"></div>
+                    😀
+                </div>
+                <div class="player-name" id="playerName">玩家名称</div>
+                <div class="player-id" id="playerId">ID: #00001</div>
+                <div class="vip-badge">VIP 1</div>
+                
+                <div class="currency-display">
+                    <div class="currency-item">
+                        <div class="currency-icon">🪙</div>
+                        <div class="currency-value" id="coinDisplay">1000</div>
+                        <div class="currency-label">金币</div>
+                    </div>
+                    <div class="currency-item">
+                        <div class="currency-icon">💎</div>
+                        <div class="currency-value" id="diamondDisplay">0</div>
+                        <div class="currency-label">钻石</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-icon">🎮</div>
+                    <div class="stat-value" id="gamesPlayed">0</div>
+                    <div class="stat-label">游戏场次</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-value" id="gamesWon">0</div>
+                    <div class="stat-label">获胜次数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-value" id="winRate">0%</div>
+                    <div class="stat-label">胜率</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-value" id="totalScore">0</div>
+                    <div class="stat-label">总积分</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🏰</div>
+                    <div class="stat-value" id="highestLevel">A</div>
+                    <div class="stat-label">最高层数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✨</div>
+                    <div class="stat-value" id="perfectMatches">0</div>
+                    <div class="stat-label">完美匹配</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 我的背包 -->
+        <div class="section-title">🎒 我的背包</div>
+        <div class="inventory-grid" id="inventoryGrid">
+            <!-- 动态生成 -->
+        </div>
+        
+        <!-- 商城 -->
+        <div class="section-title">🛒 商城</div>
+        <div class="shop-section">
+            <div class="shop-grid" id="shopGrid">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 从主页面获取玩家信息
+        const playerName = localStorage.getItem('playerName') || '金先生';
+        const playerId = localStorage.getItem('playerId') || 'player_001';
+        
+        document.getElementById('playerName').textContent = playerName;
+        document.getElementById('playerId').textContent = 'ID: ' + playerId;
+        
+        // 模拟数据
+        let playerData = {
+            coins: 1580,
+            diamonds: 50,
+            gamesPlayed: 12,
+            gamesWon: 5,
+            totalScore: 2450,
+            highestLevel: 'K',
+            perfectMatches: 8,
+            streak: 2,
+            inventory: ['skin_default', 'frame_default'],
+            equipped: {
+                card_skin: 'skin_default',
+                avatar_frame: 'frame_default'
+            }
+        };
+        
+        // 商城商品
+        const shopItems = [
+            { id: 'skin_gold', name: '黄金卡牌', icon: '🟨', type: '皮肤', price: 5000, currency: 'coins' },
+            { id: 'skin_crystal', name: '水晶卡牌', icon: '💎', type: '皮肤', price: 3000, currency: 'coins' },
+            { id: 'frame_king', name: '王者边框', icon: '👑', type: '头像框', price: 200, currency: 'diamonds' },
+            { id: 'frame_star', name: '星辰边框', icon: '⭐', type: '头像框', price: 100, currency: 'diamonds' }
+        ];
+        
+        // 更新显示
+        function updateDisplay() {
+            document.getElementById('coinDisplay').textContent = playerData.coins;
+            document.getElementById('diamondDisplay').textContent = playerData.diamonds;
+            document.getElementById('gamesPlayed').textContent = playerData.gamesPlayed;
+            document.getElementById('gamesWon').textContent = playerData.gamesWon;
+            document.getElementById('winRate').textContent = Math.round((playerData.gamesWon / playerData.gamesPlayed) * 100) + '%';
+            document.getElementById('totalScore').textContent = playerData.totalScore;
+            document.getElementById('highestLevel').textContent = playerData.highestLevel;
+            document.getElementById('perfectMatches').textContent = playerData.perfectMatches;
+            
+            // 更新每日奖励
+            document.getElementById('streakDays').textContent = playerData.streak;
+            const rewards = [100, 150, 200, 250, 300, 400, 500];
+            document.getElementById('rewardAmount').textContent = rewards[Math.min(playerData.streak - 1, 6)];
+            document.getElementById('nextReward').textContent = rewards[Math.min(playerData.streak, 6)];
+        }
+        
+        // 渲染背包
+        function renderInventory() {
+            const grid = document.getElementById('inventoryGrid');
+            const allItems = [
+                { id: 'skin_default', name: '默认卡牌', icon: '🃏', type: '皮肤' },
+                { id: 'frame_default', name: '默认边框', icon: '⭕', type: '头像框' }
+            ];
+            
+            grid.innerHTML = allItems.map(item => `
+                <div class="inventory-item ${playerData.equipped.card_skin === item.id || playerData.equipped.avatar_frame === item.id ? 'equipped' : ''}"
+                     onclick="equipItem('${item.id}', '${item.type}')">
+                    <div class="item-icon">${item.icon}</div>
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-type">${item.type} ${playerData.equipped.card_skin === item.id || playerData.equipped.avatar_frame === item.id ? '(已装备)' : ''}</div>
+                </div>
+            `).join('');
+        }
+        
+        // 渲染商城
+        function renderShop() {
+            const grid = document.getElementById('shopGrid');
+            grid.innerHTML = shopItems.map(item => {
+                const owned = playerData.inventory.includes(item.id);
+                const canAfford = item.currency === 'coins' ? playerData.coins >= item.price : playerData.diamonds >= item.price;
+                
+                return `
+                    <div class="shop-item ${owned ? 'owned' : ''}">
+                        <div class="item-icon">${item.icon}</div>
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-type">${item.type}</div>
+                        <div class="item-price">${item.currency === 'coins' ? '🪙' : '💎'} ${item.price}</div>
+                        <button class="buy-btn" 
+                                onclick="buyItem('${item.id}', ${item.price}, '${item.currency}')"
+                                ${owned || !canAfford ? 'disabled' : ''}>
+                            ${owned ? '已拥有' : (canAfford ? '购买' : '余额不足')}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 购买物品
+        function buyItem(itemId, price, currency) {
+            if (currency === 'coins') {
+                if (playerData.coins >= price) {
+                    playerData.coins -= price;
+                    playerData.inventory.push(itemId);
+                    alert('购买成功！');
+                }
+            } else {
+                if (playerData.diamonds >= price) {
+                    playerData.diamonds -= price;
+                    playerData.inventory.push(itemId);
+                    alert('购买成功！');
+                }
+            }
+            updateDisplay();
+            renderShop();
+            renderInventory();
+        }
+        
+        // 装备物品
+        function equipItem(itemId, type) {
+            if (type === '皮肤') {
+                playerData.equipped.card_skin = itemId;
+            } else if (type === '头像框') {
+                playerData.equipped.avatar_frame = itemId;
+            }
+            alert(`已装备 ${type}`);
+            renderInventory();
+        }
+        
+        // 领取每日奖励
+        function claimDailyReward() {
+            const rewards = [100, 150, 200, 250, 300, 400, 500];
+            const reward = rewards[Math.min(playerData.streak - 1, 6)];
+            playerData.coins += reward;
+            playerData.streak++;
+            document.getElementById('claimBtn').disabled = true;
+            document.getElementById('claimBtn').textContent = '今日已领取';
+            alert(`领取成功！获得 ${reward} 金币！`);
+            updateDisplay();
+        }
+        
+        // 返回游戏
+        function goBack() {
+            window.location.href = 'http://localhost:8080';
+        }
+        
+        // 初始化
+        updateDisplay();
+        renderInventory();
+        renderShop();
+    </script>
+</body>
+</html>

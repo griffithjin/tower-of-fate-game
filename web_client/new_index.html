@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>命运之塔 - Tower of Fate</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --level-2: #ff6b6b; --level-3: #ff8e53; --level-4: #ffcd56;
+            --level-5: #4bc0c0; --level-6: #36a2eb; --level-7: #9966ff;
+            --level-8: #ff9f40; --level-9: #ff6384; --level-10: #c9cbcf;
+            --level-j: #ffd700; --level-q: #e91e63; --level-k: #9c27b0; --level-a: #00bcd4;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(180deg, #0a0a1a 0%, #1a1a3e 50%, #0d1b2a 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 10px; }
+        
+        /* 登录界面 */
+        .login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            transition: all 0.5s;
+        }
+        
+        .game-title {
+            font-size: 3.5em;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ffd700, #ff6b6b, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .subtitle { color: #888; margin-bottom: 20px; }
+        
+        /* 顶部导航 */
+        .top-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(255,215,0,0.3); }
+        .btn-gold { background: linear-gradient(45deg, #ffd700, #ffaa00); color: #000; }
+        .btn-primary { background: linear-gradient(45deg, #667eea, #764ba2); color: #fff; }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+        .btn-danger { background: rgba(255,0,0,0.3); color: #fff; border: 1px solid rgba(255,0,0,0.5); }
+        .btn-success { background: linear-gradient(45deg, #0f0, #0a0); color: #fff; }
+        .btn-purple { background: linear-gradient(45deg, #90f, #509); color: #fff; }
+        
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        input[type="text"] {
+            padding: 15px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: 2px solid rgba(255,215,0,0.3);
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            margin-bottom: 15px;
+            width: 280px;
+            text-align: center;
+        }
+        
+        /* 主菜单网格 */
+        .main-menu-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+        
+        .menu-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 25px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid rgba(255,215,0,0.2);
+        }
+        
+        .menu-card:hover {
+            background: rgba(255,215,0,0.1);
+            border-color: #ffd700;
+            transform: translateY(-5px);
+        }
+        
+        .menu-card .icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .menu-card .name {
+            font-size: 14px;
+            color: #ffd700;
+        }
+        
+        /* 游戏界面 */
+        .game-screen { display: none; padding: 10px; }
+        .game-screen.active { display: block; }
+        
+        /* 弹窗 */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+        
+        .overlay.active { display: flex; }
+        
+        .overlay-content {
+            background: linear-gradient(135deg, #1a1a3e, #0d1b2a);
+            border-radius: 20px;
+            border: 3px solid #ffd700;
+            padding: 30px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            margin: 20px auto;
+        }
+        
+        .overlay-content h2 { color: #ffd700; margin-bottom: 20px; text-align: center; }
+        
+        .section-title {
+            font-size: 18px;
+            color: #ffd700;
+            margin: 20px 0 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+        
+        /* 匹配模式选择 */
+        .match-modes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .match-mode-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .match-mode-card:hover {
+            border-color: #ffd700;
+            background: rgba(255,215,0,0.1);
+        }
+        
+        .match-mode-card.selected {
+            border-color: #0f0;
+            background: rgba(0,255,0,0.1);
+        }
+        
+        .match-mode-card .icon { font-size: 50px; margin-bottom: 10px; }
+        .match-mode-card .name { font-size: 18px; color: #ffd700; margin-bottom: 5px; }
+        .match-mode-card .desc { font-size: 12px; color: #888; }
+        
+        /* 商城分类 */
+        .shop-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .shop-tab {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .shop-tab:hover, .shop-tab.active {
+            background: rgba(255,215,0,0.2);
+            border-color: #ffd700;
+        }
+        
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        
+        .shop-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .shop-item:hover {
+            border-color: #ffd700;
+            transform: translateY(-5px);
+        }
+        
+        .shop-item .icon { font-size: 40px; margin-bottom: 10px; }
+        .shop-item .name { font-size: 14px; color: #ffd700; margin-bottom: 5px; }
+        .shop-item .price { font-size: 12px; margin-bottom: 10px; }
+        .shop-item .price.coins { color: #ffd700; }
+        .shop-item .price.diamonds { color: #0ff; }
+        
+        /* 任务列表 */
+        .task-list {
+            margin: 15px 0;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ffd700;
+        }
+        
+        .task-item.completed { border-left-color: #0f0; opacity: 0.7; }
+        
+        .task-info { flex: 1; }
+        .task-name { font-size: 16px; color: #fff; margin-bottom: 5px; }
+        .task-desc { font-size: 12px; color: #888; }
+        .task-progress { font-size: 12px; color: #ffd700; margin-top: 5px; }
+        
+        .task-reward {
+            text-align: right;
+            margin-right: 15px;
+        }
+        
+        /* 签到日历 */
+        .checkin-calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .checkin-day {
+            aspect-ratio: 1;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid transparent;
+        }
+        
+        .checkin-day.checked { border-color: #0f0; background: rgba(0,255,0,0.1); }
+        .checkin-day.today { border-color: #ffd700; }
+        .checkin-day .day-num { font-size: 12px; color: #888; }
+        .checkin-day .reward { font-size: 16px; }
+        
+        /* 好友列表 */
+        .friend-list {
+            margin: 15px 0;
+        }
+        
+        .friend-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .friend-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 15px;
+        }
+        
+        .friend-info { flex: 1; }
+        .friend-name { font-size: 16px; color: #fff; }
+        .friend-status { font-size: 12px; color: #0f0; }
+        .friend-status.offline { color: #888; }
+        
+        /* 赛季信息 */
+        .season-info {
+            background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,107,107,0.1));
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 2px solid rgba(255,215,0,0.3);
+        }
+        
+        .season-name { font-size: 24px; color: #ffd700; margin-bottom: 10px; }
+        .season-time { font-size: 14px; color: #888; margin-bottom: 15px; }
+        
+        .rank-display {
+            display: inline-block;
+            padding: 10px 30px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 25px;
+            font-size: 20px;
+            color: #ffd700;
+        }
+        
+        /* 排行榜 */
+        .leaderboard-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .leaderboard-list {
+            margin: 15px 0;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .leaderboard-rank {
+            width: 40px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .leaderboard-rank.top3 { color: #ffd700; }
+        
+        .leaderboard-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 15px;
+        }
+        
+        .leaderboard-name { flex: 1; }
+        .leaderboard-score { color: #ffd700; font-weight: bold; }
+        
+        /* 抽奖转盘 */
+        .lottery-wheel {
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            position: relative;
+        }
+        
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: #ffd700;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        /* 观战列表 */
+        .spectate-list {
+            margin: 15px 0;
+        }
+        
+        .spectate-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .spectate-item:hover {
+            background: rgba(255,215,0,0.1);
+        }
+        
+        .spectate-players { display: flex; gap: 5px; }
+        .spectate-player { font-size: 20px; }
+        .spectate-viewers { color: #888; font-size: 12px; }
+        
+        /* 战队信息 */
+        .guild-info {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .guild-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .guild-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #ffd700, #ff6b6b);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            margin-right: 15px;
+        }
+        
+        .guild-name { font-size: 24px; color: #ffd700; }
+        .guild-tag { font-size: 14px; color: #888; }
+        
+        .guild-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            text-align: center;
+        }
+        
+        .guild-stat .value { font-size: 20px; color: #ffd700; }
+        .guild-stat .label { font-size: 12px; color: #888; }
+        
+        /* 隐藏 */
+        .hidden { display: none !important; }
+        
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .main-menu-grid { grid-template-columns: repeat(2, 1fr); }
+            .shop-grid { grid-template-columns: repeat(2, 1fr); }
+            .match-modes { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 登录界面 -->
+        <div class="login-screen" id="loginScreen">
+            <h1 class="game-title">🏰 命运之塔</h1>
+            <p class="subtitle">Tower of Fate - 13层登顶之战</p>
+            
+            <div style="margin-bottom: 15px;">
+                <input type="text" id="playerName" placeholder="输入您的昵称" value="金先生">
+            </div>
+            
+            <!-- 主菜单网格 -->
+            <div class="main-menu-grid">
+                <div class="menu-card" onclick="showQuickMatch()">
+                    <div class="icon">⚡</div>
+                    <div class="name">快速匹配</div>
+                </div>
+                
+                <div class="menu-card" onclick="showTeamBattle()">
+                    <div class="icon">👥</div>
+                    <div class="name">团队战</div>
+                </div>
+                
+                <div class="menu-card" onclick="showRanked()">
+                    <div class="icon">🏆</div>
+                    <div class="name">排位赛</div>
+                </div>
+                <div class="menu-card" onclick="showTournament()">
+                    <div class="icon">🎯</div>
+                    <div class="name">锦标赛</div>
+                </div>
+                
+                <div class="menu-card" onclick="showSeason()">
+                    <div class="icon">📅</div>
+                    <div class="name">赛季</div>
+                </div>
+                
+                <div class="menu-card" onclick="showTasks()">
+                    <div class="icon">📋</div>
+                    <div class="name">任务</div>
+                </div>
+                
+                <div class="menu-card" onclick="showFriends()">
+                    <div class="icon">👫</div>
+                    <div class="name">好友</div>
+                </div>
+                <div class="menu-card" onclick="showGuild()">
+                    <div class="icon">⚔️</div>
+                    <div class="name">战队</div>
+                </div>
+                
+                <div class="menu-card" onclick="showShop()">
+                    <div class="icon">🛍️</div>
+                    <div class="name">商城</div>
+                </div>
+                
+                <div class="menu-card" onclick="showLottery()">
+                    <div class="icon">🎰</div>
+                    <div class="name">抽奖</div>
+                </div>
+                
+                <div class="menu-card" onclick="window.location.href='features.html'">
+                    <div class="icon">📚</div>
+                    <div class="name">功能大全</div>
+                </div>
+                
+                <div class="menu-card" onclick="showUserCenter()">
+                    <div class="icon">👤</div>
+                    <div class="name">用户中心</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 快速匹配弹窗 -->
+    <div class="overlay" id="quickMatchOverlay">
+        <div class="overlay-content">
+            <h2>⚡ 快速匹配</h2>
+            
+            <div class="match-modes">
+                <div class="match-mode-card" onclick="startQuickMatch('solo')">
+                    <div class="icon">👤</div>
+                    <div class="name">个人赛</div>
+                    <div class="desc">1人 vs 3AI，快速开始</div>
+                </div>
+                
+                <div class="match-mode-card" onclick="startQuickMatch('ranked')">
+                    <div class="icon">🏆</div>
+                    <div class="name">排位赛</div>
+                    <div class="desc">匹配实力相近的对手</div>
+                </div>
+                
+                <div class="match-mode-card" onclick="startQuickMatch('team_2v2')">
+                    <div class="icon">👥</div>
+                    <div class="name">2v2 团队</div>
+                    <div class="desc">2人组队 vs 2人组队</div>
+                </div>
+                
+                <div class="match-mode-card" onclick="startQuickMatch('team_3v3')">
+                    <div class="icon">👥👤</div>
+                    <div class="name">3v3 团队</div>
+                    <div class="desc">3人组队 vs 3人组队</div>
+                </div>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="closeOverlay('quickMatchOverlay')">返回</button>
+        </div>
+    </div>
+    
+    <!-- 团队战弹窗 -->
+    <div class="overlay" id="teamBattleOverlay">
+        <div class="overlay-content">
+            <h2>👥 团队对战</div>
+            
+            <div class="section-title">选择对战模式</div>
+            
+            <div class="match-modes">
+                <div class="match-mode-card" onclick="createTeamRoom(2)">
+                    <div class="icon">⚔️</div>
+                    <div class="name">2 vs 2</div>
+                    <div class="desc">两队各2人</div>
+                </div>
+                
+                <div class="match-mode-card" onclick="createTeamRoom(3)">
+                    <div class="icon">⚔️⚔️</div>
+                    <div class="name">3 vs 3</div>
+                    <div class="desc">两队各3人</div>
+                </div>
+                
+                <div class="match-mode-card" onclick="createTeamRoom(4)">
+                    <div class="icon">⚔️⚔️⚔️</div>
+                    <div class="name">4 vs 4</div>
+                    <div class="desc">两队各4人</div>
+                </div>
+                
+                <div class="match-mode-card" onclick="createTeamRoom(5)">
+                    <div class="icon">⚔️⚔️⚔️⚔️</div>
+                    <div class="name">5 vs 5</div>
+                    <div class="desc">两队各5人</div>
+                </div>
+            </div>
+            
+            <div class="section-title">邀请好友</div>
+            
+            <div style="display: flex; gap: 10px; margin: 15px 0;">
+                <input type="text" id="teamInviteCode" placeholder="房间号" readonly style="flex: 1; margin-bottom: 0;">
+                <button class="btn btn-primary" onclick="copyTeamInvite()">复制</button>
+            </div>
+            
+            
+            <button class="btn btn-secondary" onclick="closeOverlay('teamBattleOverlay')">返回</button>
+        </div>
+    </div>
+    
+    <!-- 排位赛弹窗 -->
+    <div class="overlay" id="rankedOverlay">
+        <div class="overlay-content">
+            <h2>🏆 排位赛</h2>
+            
+            <div class="season-info">
+                <div class="season-name">第 1 赛季</div>
+                <div class="season-time">剩余时间: 25天 14小时</div>
+                
+                <div class="rank-display">
+                    🥉 青铜 III
+                </div>
+                
+                <div style="margin-top: 15px; color: #888;">
+                    积分: 45/100 | 胜场: 12 | 胜率: 55%
+                </div>
+            </div>
+            
+            <div class="leaderboard-tabs">
+                <button class="shop-tab active" onclick="switchRankTab('global')">全服排名</button>
+                <button class="shop-tab" onclick="switchRankTab('friends')">好友排名</button>
+            </div>
+            
+            
+            <div class="leaderboard-list" id="rankedLeaderboard">
+                <div class="leaderboard-item">
+                    <div class="leaderboard-rank top3">1</div>
+                    <div class="leaderboard-avatar">👑</div>
+                    <div class="leaderboard-name">王者玩家</div>
+                    <div class="leaderboard-score">2500分</div>
+                </div>
+                <div class="leaderboard-item">
+                    <div class="leaderboard-rank top3">2</div>
+                    <div class="leaderboard-avatar">🥈</div>
+                    <div class="leaderboard-name">钻石玩家</div>
+                    <div class="leaderboard-score">2350分</div>
+                </div>
+                <div class="leaderboard-item">
+                    <div class="leaderboard-rank top3">3</div>
+                    <div class="leaderboard-avatar">🥉</div>
+                    <div class="leaderboard-name">铂金玩家</div>
+                    <div class="leaderboard-score">2200分</div>
+                </div>
+            </div>
+            
+            
+            <button class="btn btn-gold" onclick="startRankedMatch()">开始排位赛</button>
+            
+            <button class="btn btn-secondary" onclick="closeOverlay('rankedOverlay')">返回</button>
+        </div>
+    </div>
+    
+    <!-- 锦标赛弹窗 -->
+    <div class="overlay" id="tournamentOverlay">
+        <div class="overlay-content">
+            <h2>🎯 锦标赛</h2>
+            
+            <div style="margin: 20px 0; padding: 20px; background: rgba(255,215,0,0.1); border-radius: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span>我的战绩</span>
+                    <span style="color: #ffd700;">参赛: 0 | 冠军: 0</span>
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 1; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; text-align: center;">
+                        <div style="font-size: 24px; color: #ffd700;">0</div>
+                        <div style="font-size: 12px; color: #888;">总奖金</div>
+                    </div>
+                    
+                    <div style="flex: 1; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; text-align: center;">
+                        <div style="font-size: 24px; color: #ffd700;">0</div>
+                        <div style="font-size: 12px; color: #888;">冠军次数</div>
+                    </div>
+                </div>
+            </div>
+            
+            
+            <div class="section-title">进行中的比赛</div>
+            
+            <div style="margin: 15px 0;">
+                <div style="padding: 20px; margin: 10px 0; background: rgba(255,255,255,0.05); border-radius: 10px; border: 1px solid rgba(255,215,0,0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 20px; color: #ffd700; font-weight: bold;">🏆 每日争霸赛</div>
+                            <div style="font-size: 12px; color: #888; margin-top: 5px;">💰 报名费: 100金币 | 🏆 奖金池: 10,000金币</div>
+                            <div style="font-size: 12px; color: #888; margin-top: 5px;">👥 0/32人 | ⏰ 报名中</div>
+                        </div>
+                        
+                        <button class="btn btn-gold" onclick="joinTournament('daily')">报名</button>
+                    </div>
+                </div>
+                
+                <div style="padding: 20px; margin: 10px 0; background: rgba(255,255,255,0.05); border-radius: 10px; border: 1px solid rgba(0,255,255,0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 20px; color: #0ff; font-weight: bold;">💎 周末大奖赛</div>
+                            <div style="font-size: 12px; color: #888; margin-top: 5px;">💰 报名费: 500金币 | 🏆 奖金池: 50,000金币</div>
+                            <div style="font-size: 12px; color: #888; margin-top: 5px;">👥 0/64人 | ⏰ 报名中</div>
+                        </div>
+                        
+                        <button class="btn btn-gold" onclick="joinTournament('weekend')">报名</button>
+                    </div>
+                </div>
+                
+                <div style="padding: 20px; margin: 10px 0; background: rgba(255,255,255,0.05); border-radius: 10px; border: 1px solid rgba(255,0,255,0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 20px; color: #f0f; font-weight: bold;">👑 月度王者赛</div>
+                            <div style="font-size: 12px; color: #888; margin-top: 5px;">💰 报名费: 1000金币 | 🏆 奖金池: 200,000金币</div>
+                            <div style="font-size: 12px; color: #888; margin-top: 5px;">👥 0/128人 | ⏰ 报名中</div>
+                        </div>
+                        
+                        <button class="btn btn-gold" onclick="joinTournament('monthly')">报名</button>
+                    </div>
+                </div>
+            </div>
+            
+            
+            <button class="btn btn-secondary" onclick="closeOverlay('tournamentOverlay')">返回</button>
+        </div>
+    </div>
+    
+    <script>
+        // 显示弹窗
+        function showOverlay(id) {
+            document.getElementById(id).classList.add('active');
+        }
+        
+        function closeOverlay(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+        
+        // 菜单功能
+        function showQuickMatch() { showOverlay('quickMatchOverlay'); }
+        function showTeamBattle() { showOverlay('teamBattleOverlay'); }
+        function showRanked() { showOverlay('rankedOverlay'); }
+        function showTournament() { showOverlay('tournamentOverlay'); }
+        function showSeason() { alert('赛季系统功能开发中'); }
+        function showTasks() { alert('任务系统功能开发中'); }
+        function showFriends() { alert('好友系统功能开发中'); }
+        function showGuild() { alert('战队系统功能开发中'); }
+        function showShop() { alert('商城系统功能开发中'); }
+        function showLottery() { alert('抽奖系统功能开发中'); }
+        function showSpectate() { alert('观战系统功能开发中'); }
+        function showUserCenter() { alert('用户中心功能开发中'); }
+        
+        // 快速匹配
+        function startQuickMatch(mode) {
+            alert('开始' + mode + '模式匹配...');
+        }
+        
+        // 创建团队房间
+        function createTeamRoom(size) {
+            const roomCode = 'TEAM' + Math.random().toString(36).substr(2, 6).toUpperCase();
+            document.getElementById('teamInviteCode').value = roomCode;
+            alert(`${size}v${size} 团队房间已创建！房间号: ${roomCode}`);
+        }
+        
+        function copyTeamInvite() {
+            const code = document.getElementById('teamInviteCode').value;
+            if (code) {
+                navigator.clipboard.writeText(code);
+                alert('房间号已复制！');
+            }
+        }
+        
+        // 排位赛
+        function startRankedMatch() {
+            alert('开始排位赛匹配...');
+        }
+        
+        function switchRankTab(tab) {
+            alert('切换到' + tab + '排行榜');
+        }
+        
+        // 锦标赛
+        function joinTournament(type) {
+            const names = {
+                'daily': '每日争霸赛',
+                'weekend': '周末大奖赛',
+                'monthly': '月度王者赛'
+            };
+            alert(`报名${names[type]}成功！`);
+        }
+    </script>
+</body>
+</html>

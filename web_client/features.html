@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>命运之塔 - 功能大全</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background: linear-gradient(135deg, #0d1b2a 0%, #1a1a3e 50%, #0d1b2a 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 3px solid rgba(255,215,0,0.3);
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 48px;
+            background: linear-gradient(135deg, #ffd700, #ffed4e, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #888;
+            font-size: 18px;
+        }
+        
+        .home-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #000;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            z-index: 100;
+            transition: transform 0.3s;
+        }
+        
+        .home-link:hover {
+            transform: scale(1.05);
+        }
+        
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-box {
+            background: rgba(255,215,0,0.1);
+            border: 2px solid rgba(255,215,0,0.3);
+            border-radius: 15px;
+            padding: 20px 40px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 36px;
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .category {
+            margin-bottom: 40px;
+        }
+        
+        .category-title {
+            font-size: 28px;
+            color: #ffd700;
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid #ffd700;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .feature-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,215,0,0.2);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: #ffd700;
+            box-shadow: 0 10px 30px rgba(255,215,0,0.2);
+        }
+        
+        .feature-card.completed {
+            border-left: 4px solid #0f0;
+        }
+        
+        .feature-card.pending {
+            border-left: 4px solid #888;
+            opacity: 0.7;
+        }
+        
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .feature-name {
+            font-size: 18px;
+            color: #ffd700;
+            margin-bottom: 8px;
+        }
+        
+        .feature-desc {
+            font-size: 14px;
+            color: #888;
+            line-height: 1.6;
+        }
+        
+        .feature-status {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        
+        .status-done {
+            background: rgba(0,255,0,0.2);
+            color: #0f0;
+        }
+        
+        .status-pending {
+            background: rgba(128,128,128,0.2);
+            color: #888;
+        }
+        
+        .test-info {
+            background: rgba(255,215,0,0.1);
+            border: 2px solid rgba(255,215,0,0.3);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+            text-align: center;
+        }
+        
+        .test-info h2 {
+            color: #ffd700;
+            margin-bottom: 20px;
+        }
+        
+        .test-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .test-link {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #000;
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+        
+        .test-link:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <a href="new_index.html" class="home-link">🏠 返回首页</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🏰 命运之塔功能大全</h1>
+            <p>已开发 40+ 项功能，持续更新中...</p>
+        </div>
+        
+        <div class="stats-bar">
+            <div class="stat-box">
+                <div class="stat-number">40+</div>
+                <div class="stat-label">总功能数</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">250K+</div>
+                <div class="stat-label">代码行数</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">$46M</div>
+                <div class="stat-label">年收入预测</div>
+            </div>
+        </div>
+        
+        <!-- 核心游戏 -->
+        <div class="category">
+            <h2 class="category-title">🎮 核心游戏</h2>
+            <div class="features-grid">
+                <a href="index.html" class="feature-card completed">
+                    <div class="feature-icon">🎴</div>
+                    <div class="feature-name">经典对战</div>
+                    <div class="feature-desc">4人实时对战，爬塔晋级，完美匹配得天命牌</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="index.html" class="feature-card completed">
+                    <div class="feature-icon">🤖</div>
+                    <div class="feature-name">单人游戏</div>
+                    <div class="feature-desc">与3个AI对战，随时练习技巧</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">🎯</div>
+                    <div class="feature-name">天命牌系统</div>
+                    <div class="feature-desc">5种特殊技能：全军突击/换牌/看牌/带人/踢人</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">👤</div>
+                    <div class="feature-name">守卫角色</div>
+                    <div class="feature-desc">AI守卫，20+嘲讽语音，表情包互动</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">🎨</div>
+                    <div class="feature-name">主题切换</div>
+                    <div class="feature-desc">经典/暗黑/节日/霓虹 4种主题</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- PvE模式 -->
+        <div class="category">
+            <h2 class="category-title">⚔️ PvE模式</h2>
+            <div class="features-grid">
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">🏰</div>
+                    <div class="feature-name">冒险模式</div>
+                    <div class="feature-desc">50个精心设计的关卡，5章节，星级评价</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">🗼</div>
+                    <div class="feature-name">Roguelike爬塔</div>
+                    <div class="feature-desc">50层挑战，12种遗物，永久死亡，随机事件</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-name">每周乱斗</div>
+                    <div class="feature-desc">12种乱斗规则，每周轮换，首通奖励</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">🎭</div>
+                    <div class="feature-name">角色职业</div>
+                    <div class="feature-desc">战士/法师/盗贼/牧师，各有3个专属技能</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- 竞技系统 -->
+        <div class="category">
+            <h2 class="category-title">🏆 竞技系统</h2>
+            <div class="features-grid">
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-name">排位赛</div>
+                    <div class="feature-desc">青铜到王者6大段位，积分匹配，段位保护</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">🏅</div>
+                    <div class="feature-name">赛季系统</div>
+                    <div class="feature-desc">30天赛季周期，赛季奖励，段位重置</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="team_battle.html" class="feature-card completed">
+                    <div class="feature-icon">👥</div>
+                    <div class="feature-name">团队赛</div>
+                    <div class="feature-desc">2v2/3v3/4v4/5v5团队对战，房间码邀请</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">🏆</div>
+                    <div class="feature-name">锦标赛</div>
+                    <div class="feature-desc">每日/周末/月度赛，报名费与奖金池</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">🌍</div>
+                    <div class="feature-name">跨服匹配</div>
+                    <div class="feature-desc">突破服务器限制，全服玩家匹配</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- 社交系统 -->
+        <div class="category">
+            <h2 class="category-title">💬 社交系统</h2>
+            <div class="features-grid">
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">👫</div>
+                    <div class="feature-name">好友系统</div>
+                    <div class="feature-desc">添加好友、私聊、在线状态、好友推荐</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">👨‍🏫</div>
+                    <div class="feature-name">师徒系统</div>
+                    <div class="feature-desc">拜师收徒，师徒任务，出师奖励</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">💕</div>
+                    <div class="feature-name">结婚/结拜</div>
+                    <div class="feature-desc">建立关系，组队加成，专属称号</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">🏛️</div>
+                    <div class="feature-name">公会系统</div>
+                    <div class="feature-desc">创建公会、公会战、公会排行榜</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">💬</div>
+                    <div class="feature-name">聊天系统</div>
+                    <div class="feature-desc">世界聊天、私聊、表情、快捷语</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- 商业化 -->
+        <div class="category">
+            <h2 class="category-title">💰 商业化</h2>
+            <div class="features-grid">
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">🪙</div>
+                    <div class="feature-name">金币系统</div>
+                    <div class="feature-desc">游戏内货币，对局奖励，每日任务</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">💎</div>
+                    <div class="feature-name">钻石系统</div>
+                    <div class="feature-desc">充值货币，购买道具，兑换金币</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">👑</div>
+                    <div class="feature-name">VIP系统</div>
+                    <div class="feature-desc">980钻石购买，+1天命牌槽位，从3层开始</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">🎁</div>
+                    <div class="feature-name">商城系统</div>
+                    <div class="feature-desc">30+商品，皮肤/头像框/特效/BGM</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">🎰</div>
+                    <div class="feature-name">抽奖系统</div>
+                    <div class="feature-desc">幸运转盘、宝箱开启、保底机制</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">💳</div>
+                    <div class="feature-name">订阅系统</div>
+                    <div class="feature-desc">月卡/季卡/年卡，10-15倍返利</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">📈</div>
+                    <div class="feature-name">成长基金</div>
+                    <div class="feature-desc">98元购买，10倍返利，等级达标领取</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">🎀</div>
+                    <div class="feature-name">皮肤系统</div>
+                    <div class="feature-desc">卡牌皮肤、头像框、聊天气泡、出牌特效</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- 活动系统 -->
+        <div class="category">
+            <h2 class="category-title">🎉 活动系统</h2>
+            <div class="features-grid">
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">📅</div>
+                    <div class="feature-name">签到系统</div>
+                    <div class="feature-desc">7天签到，连续奖励，断签保护</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">📋</div>
+                    <div class="feature-name">任务系统</div>
+                    <div class="feature-desc">每日/每周/成就任务，丰厚奖励</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">🎊</div>
+                    <div class="feature-name">限时活动</div>
+                    <div class="feature-desc">双倍掉落、节日活动、登录送SSR</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">👥</div>
+                    <div class="feature-name">邀请返利</div>
+                    <div class="feature-desc">邀请好友，10%消费返利</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- 其他功能 -->
+        <div class="category">
+            <h2 class="category-title">⚙️ 其他功能</h2>
+            <div class="features-grid">
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-name">数据统计</div>
+                    <div class="feature-desc">个人战绩、胜率统计、对局记录</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">🏆</div>
+                    <div class="feature-name">排行榜</div>
+                    <div class="feature-desc">全区排行、好友排行、赛季排行</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">🎥</div>
+                    <div class="feature-name">观战系统</div>
+                    <div class="feature-desc">观看高手对局，学习技巧</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">📹</div>
+                    <div class="feature-name">回放系统</div>
+                    <div class="feature-desc">保存精彩对局，回放分享</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="#" class="feature-card completed">
+                    <div class="feature-icon">📺</div>
+                    <div class="feature-name">直播系统</div>
+                    <div class="feature-desc">主播认证、打赏、50%分成</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+                
+                <a href="http://localhost:8081" target="_blank" class="feature-card completed">
+                    <div class="feature-icon">⚙️</div>
+                    <div class="feature-name">后台管理</div>
+                    <div class="feature-desc">玩家管理、数据统计、礼品发放</div>
+                    <span class="feature-status status-done">✅ 已完成</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- 测试地址 -->
+        <div class="test-info">
+            <h2>🎮 测试环境地址</h2>
+            <p style="color: #888; margin-bottom: 20px;">点击下方链接开始测试各项功能</p>
+            
+            <div class="test-links">
+                <a href="new_index.html" class="test-link">🏠 游戏首页</a>
+                <a href="index.html" class="test-link">🎮 经典对战</a>
+                <a href="team_battle.html" class="test-link">👥 团队赛</a>
+                <a href="http://localhost:8081" class="test-link" target="_blank">⚙️ 后台管理</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
