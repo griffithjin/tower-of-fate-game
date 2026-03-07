@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>按钮配置管理 - 命运塔后台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary: #764ba2;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --danger: #f56565;
+            --bg-dark: #1a1a2e;
+            --bg-card: #2d2d44;
+            --bg-sidebar: #252538;
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --border-color: #3d3d5c;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 16px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-brand h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Layout */
+        .container {
+            display: flex;
+            height: calc(100vh - 64px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 12px 10px 36px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .category-tabs {
+            display: flex;
+            padding: 12px;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            border-color: var(--primary);
+            color: var(--text-primary);
+        }
+
+        .button-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .button-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .button-item:hover {
+            border-color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .button-item.active {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+        }
+
+        .button-item.dragging {
+            opacity: 0.5;
+        }
+
+        .button-drag-handle {
+            color: var(--text-secondary);
+            cursor: grab;
+        }
+
+        .button-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .button-info {
+            flex: 1;
+        }
+
+        .button-name {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .button-id {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .button-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .button-status.enabled {
+            background: var(--success);
+        }
+
+        .button-status.disabled {
+            background: var(--danger);
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: var(--bg-dark);
+        }
+
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .main-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* Editor Sections */
+        .editor-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .section-header i {
+            color: var(--primary);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        .form-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            padding: 12px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Language Editor */
+        .lang-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .lang-tab {
+            padding: 8px 16px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .lang-tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .lang-tab .flag {
+            font-size: 16px;
+        }
+
+        .lang-content {
+            display: none;
+        }
+
+        .lang-content.active {
+            display: block;
+        }
+
+        /* Style Editor */
+        .style-editor {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .style-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .color-picker-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-picker {
+            width: 48px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .color-value {
+            flex: 1;
+            padding: 10px 12px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: monospace;
+        }
+
+        .slider-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            background: var(--bg-dark);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .slider-value {
+            min-width: 50px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Preview Panel */
+        .preview {
+            width: 380px;
+            background: var(--bg-sidebar);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .preview-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preview-tabs {
+            display: flex;
+            padding: 12px;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .preview-tab {
+            flex: 1;
+            padding: 8px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .preview-tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .preview-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        /* Device Preview */
+        .device-frame {
+            background: #000;
+            border-radius: 30px;
+            padding: 12px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .device-screen {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            aspect-ratio: 9/19;
+            position: relative;
+        }
+
+        .device-notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 25px;
+            background: #000;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            z-index: 10;
+        }
+
+        .device-content {
+            padding: 40px 16px 16px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .preview-button {
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .preview-button:hover {
+            transform: scale(1.02);
+        }
+
+        .preview-button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            padding: 16px 20px;
+            background: var(--bg-card);
+            border-radius: 10px;
+            border-left: 4px solid var(--success);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--bg-dark);
+            border-radius: 24px;
+            transition: 0.3s;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--success);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .preview {
+                display: none;
+            }
+        }
+
+        /* Dark/Light Mode Toggle */
+        .theme-preview {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .theme-option {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .theme-option.active {
+            border-color: var(--primary);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .theme-option.dark {
+            background: #1a1a2e;
+            color: white;
+        }
+
+        .theme-option.light {
+            background: #f5f5f5;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-brand">
+            <i class="fas fa-gamepad"></i>
+            <h1>🎮 按钮配置管理</h1>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="resetChanges()">
+                <i class="fas fa-undo"></i> 重置
+            </button>
+            <button class="btn btn-primary" onclick="saveChanges()">
+                <i class="fas fa-save"></i> 保存更改
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="搜索按钮..." id="searchInput">
+                </div>
+            </div>
+            
+            <div class="category-tabs">
+                <button class="tab active" data-category="all">全部</button>
+                <button class="tab" data-category="main-menu">主菜单</button>
+                <button class="tab" data-category="game-controls">游戏控制</button>
+                <button class="tab" data-category="shop">商店</button>
+                <button class="tab" data-category="social">社交</button>
+            </div>
+            
+            <div class="button-list" id="buttonList">
+                <!-- 按钮列表将通过JS动态生成 -->
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <div class="main-header">
+                <h2 class="main-title" id="editorTitle">选择一个按钮进行编辑</h2>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <span style="color: var(--text-secondary); font-size: 14px;">启用</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="enableToggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Basic Info -->
+            <div class="editor-section" id="basicSection" style="display: none;">
+                <div class="section-header">
+                    <i class="fas fa-info-circle"></i>
+                    <h3>基本信息</h3>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">按钮ID</label>
+                        <input type="text" class="form-input" id="buttonId" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">按钮Key</label>
+                        <input type="text" class="form-input" id="buttonKey" placeholder="如: play_button">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">分类</label>
+                        <select class="form-select" id="buttonCategory">
+                            <option value="main-menu">主菜单</option>
+                            <option value="game-controls">游戏控制</option>
+                            <option value="shop">商店</option>
+                            <option value="social">社交</option>
+                            <option value="settings">设置</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">图标</label>
+                        <select class="form-select" id="buttonIcon">
+                            <option value="">无图标</option>
+                            <option value="play">▶ 播放</option>
+                            <option value="pause">⏸ 暂停</option>
+                            <option value="stop">⏹ 停止</option>
+                            <option value="star">⭐ 星星</option>
+                            <option value="heart">❤️ 爱心</option>
+                            <option value="cog">⚙️ 设置</option>
+                            <option value="user">👤 用户</option>
+                            <option value="shop">🛒 商店</option>
+                            <option value="trophy">🏆 奖杯</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">描述</label>
+                        <textarea class="form-textarea" id="buttonDescription" placeholder="按钮功能描述..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Text Content -->
+            <div class="editor-section" id="textSection" style="display: none;">
+                <div class="section-header">
+                    <i class="fas fa-language"></i>
+                    <h3>多语言文本</h3>
+                </div>
+                
+                <div class="lang-tabs">
+                    <button class="lang-tab active" data-lang="zh-CN">
+                        <span class="flag">🇨🇳</span> 简体中文
+                    </button>
+                    <button class="lang-tab" data-lang="en-US">
+                        <span class="flag">🇺🇸</span> English
+                    </button>
+                    <button class="lang-tab" data-lang="ja-JP">
+                        <span class="flag">🇯🇵</span> 日本語
+                    </button>
+                    <button class="lang-tab" data-lang="ko-KR">
+                        <span class="flag">🇰🇷</span> 한국어
+                    </button>
+                    <button class="lang-tab" data-lang="th-TH">
+                        <span class="flag">🇹🇭</span> ไทย
+                    </button>
+                </div>
+                
+                <div id="langContent">
+                    <div class="lang-content active" data-lang="zh-CN">
+                        <div class="form-group">
+                            <label class="form-label">按钮文本</label>
+                            <input type="text" class="form-input lang-text" data-lang="zh-CN" placeholder="输入中文文本">
+                        </div>
+                    </div>
+                    <div class="lang-content" data-lang="en-US">
+                        <div class="form-group">
+                            <label class="form-label">Button Text</label>
+                            <input type="text" class="form-input lang-text" data-lang="en-US" placeholder="Enter English text">
+                        </div>
+                    </div>
+                    <div class="lang-content" data-lang="ja-JP">
+                        <div class="form-group">
+                            <label class="form-label">ボタンテキスト</label>
+                            <input type="text" class="form-input lang-text" data-lang="ja-JP" placeholder="日本語テキストを入力">
+                        </div>
+                    </div>
+                    <div class="lang-content" data-lang="ko-KR">
+                        <div class="form-group">
+                            <label class="form-label">버튼 텍스트</label>
+                            <input type="text" class="form-input lang-text" data-lang="ko-KR" placeholder="한국어 텍스트 입력">
+                        </div>
+                    </div>
+                    <div class="lang-content" data-lang="th-TH">
+                        <div class="form-group">
+                            <label class="form-label">ข้อความปุ่ม</label>
+                            <input type="text" class="form-input lang-text" data-lang="th-TH" placeholder="ใส่ข้อความภาษาไทย">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style Editor -->
+            <div class="editor-section" id="styleSection" style="display: none;">
+                <div class="section-header">
+                    <i class="fas fa-paint-brush"></i>
+                    <h3>样式设置</h3>
+                </div>
+                
+                <div class="style-editor">
+                    <div class="style-group">
+                        <label class="form-label">背景颜色</label>
+                        <div class="color-picker-wrapper">
+                            <input type="color" class="color-picker" id="bgColor" value="#667eea">
+                            <input type="text" class="color-value" id="bgColorValue" value="#667eea">
+                        </div>
+                    </div>
+                    
+                    <div class="style-group">
+                        <label class="form-label">文字颜色</label>
+                        <div class="color-picker-wrapper">
+                            <input type="color" class="color-picker" id="textColor" value="#ffffff">
+                            <input type="text" class="color-value" id="textColorValue" value="#ffffff">
+                        </div>
+                    </div>
+                    
+                    <div class="style-group">
+                        <label class="form-label">边框颜色</label>
+                        <div class="color-picker-wrapper">
+                            <input type="color" class="color-picker" id="borderColor" value="#764ba2">
+                            <input type="text" class="color-value" id="borderColorValue" value="#764ba2">
+                        </div>
+                    </div>
+                    
+                    <div class="style-group">
+                        <label class="form-label">圆角大小</label>
+                        <div class="slider-wrapper">
+                            <input type="range" class="slider" id="borderRadius" min="0" max="30" value="12">
+                            <span class="slider-value" id="borderRadiusValue">12px</span>
+                        </div>
+                    </div>
+                    
+                    <div class="style-group">
+                        <label class="form-label">字体大小</label>
+                        <div class="slider-wrapper">
+                            <input type="range" class="slider" id="fontSize" min="12" max="24" value="16">
+                            <span class="slider-value" id="fontSizeValue">16px</span>
+                        </div>
+                    </div>
+                    
+                    <div class="style-group">
+                        <label class="form-label">内边距</label>
+                        <div class="slider-wrapper">
+                            <input type="range" class="slider" id="padding" min="8" max="32" value="16">
+                            <span class="slider-value" id="paddingValue">16px</span>
+                        </div>
+                    </div>
+                    
+                    <div class="style-group">
+                        <label class="form-label">阴影强度</label>
+                        <div class="slider-wrapper">
+                            <input type="range" class="slider" id="shadowIntensity" min="0" max="20" value="8">
+                            <span class="slider-value" id="shadowValue">8</span>
+                        </div>
+                    </div>
+                    
+                    <div class="style-group">
+                        <label class="form-label">悬停透明度</label>
+                        <div class="slider-wrapper">
+                            <input type="range" class="slider" id="hoverOpacity" min="50" max="100" value="90">
+                            <span class="slider-value" id="hoverOpacityValue">90%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="style-group">
+                        <label class="form-label">按钮宽度</label>
+                        <select class="form-select" id="buttonWidth">
+                            <option value="auto">自动</option>
+                            <option value="100%">100%</option>
+                            <option value="200px">200px</option>
+                            <option value="240px">240px</option>
+                            <option value="280px">280px</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="editor-section" id="actionSection" style="display: none;">
+                <div class="section-header">
+                    <i class="fas fa-bolt"></i>
+                    <h3>动作配置</h3>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">点击动作</label>
+                        <select class="form-select" id="actionType">
+                            <option value="navigate">页面导航</option>
+                            <option value="modal">打开弹窗</option>
+                            <option value="api">调用API</option>
+                            <option value="emit">触发事件</option>
+                            <option value="external">外部链接</option>
+                            <option value="custom">自定义代码</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">目标/参数</label>
+                        <input type="text" class="form-input" id="actionTarget" placeholder="如: /game/play 或 modal-id">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label class="form-label">额外参数 (JSON)</label>
+                        <textarea class="form-textarea" id="actionParams" placeholder='{"key": "value"}'></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">跟踪事件</label>
+                        <input type="text" class="form-input" id="trackEvent" placeholder="如: button_play_clicked">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">需要确认</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="needConfirm">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Preview Panel -->
+        <aside class="preview">
+            <div class="preview-header">
+                <h3><i class="fas fa-eye"></i> 实时预览</h3>
+            </div>
+            
+            <div class="theme-preview">
+                <div class="theme-option dark active" data-theme="dark">
+                    <i class="fas fa-moon"></i> 暗色
+                </div>
+                <div class="theme-option light" data-theme="light">
+                    <i class="fas fa-sun"></i> 亮色
+                </div>
+            </div>
+            
+            <div class="preview-tabs">
+                <button class="preview-tab active" data-device="mobile">📱 手机</button>
+                <button class="preview-tab" data-device="tablet">📋 平板</button>
+            </div>
+            
+            <div class="preview-content">
+                <div class="device-frame">
+                    <div class="device-screen" id="previewScreen">
+                        <div class="device-notch"></div>
+                        <div class="device-content">
+                            <button class="preview-button" id="previewButton">
+                                按钮文本
+                            </button>
+                            <button class="preview-button secondary">
+                                次要按钮
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // 示例按钮数据
+        const buttonData = [
+            {
+                id: 'btn_001',
+                key: 'play_now',
+                category: 'main-menu',
+                icon: 'play',
+                description: '开始游戏主按钮',
+                enabled: true,
+                texts: {
+                    'zh-CN': '立即开始',
+                    'en-US': 'Play Now',
+                    'ja-JP': '今すぐプレイ',
+                    'ko-KR': '지금 시작',
+                    'th-TH': 'เล่นเลย'
+                },
+                style: {
+                    backgroundColor: '#667eea',
+                    textColor: '#ffffff',
+                    borderColor: '#764ba2',
+                    borderRadius: 12,
+                    fontSize: 16,
+                    padding: 16,
+                    shadowIntensity: 8,
+                    hoverOpacity: 90,
+                    width: '100%'
+                },
+                action: {
+                    type: 'navigate',
+                    target: '/game/lobby',
+                    params: {},
+                    trackEvent: 'play_button_clicked',
+                    needConfirm: false
+                }
+            },
+            {
+                id: 'btn_002',
+                key: 'shop',
+                category: 'main-menu',
+                icon: 'shop',
+                description: '游戏商店入口',
+                enabled: true,
+                texts: {
+                    'zh-CN': '商店',
+                    'en-US': 'Shop',
+                    'ja-JP': 'ショップ',
+                    'ko-KR': '상점',
+                    'th-TH': 'ร้านค้า'
+                },
+                style: {
+                    backgroundColor: '#ffd700',
+                    textColor: '#1a1a2e',
+                    borderColor: '#ffa500',
+                    borderRadius: 12,
+                    fontSize: 16,
+                    padding: 16,
+                    shadowIntensity: 6,
+                    hoverOpacity: 85,
+                    width: '100%'
+                },
+                action: {
+                    type: 'navigate',
+                    target: '/shop',
+                    params: {},
+                    trackEvent: 'shop_button_clicked',
+                    needConfirm: false
+                }
+            },
+            {
+                id: 'btn_003',
+                key: 'tournaments',
+                category: 'main-menu',
+                icon: 'trophy',
+                description: '锦标赛入口',
+                enabled: true,
+                texts: {
+                    'zh-CN': '锦标赛',
+                    'en-US': 'Tournaments',
+                    'ja-JP': 'トーナメント',
+                    'ko-KR': '토너먼트',
+                    'th-TH': 'ทัวร์นาเมนต์'
+                },
+                style: {
+                    backgroundColor: '#e74c3c',
+                    textColor: '#ffffff',
+                    borderColor: '#c0392b',
+                    borderRadius: 12,
+                    fontSize: 16,
+                    padding: 16,
+                    shadowIntensity: 8,
+                    hoverOpacity: 90,
+                    width: '100%'
+                },
+                action: {
+                    type: 'navigate',
+                    target: '/tournaments',
+                    params: {},
+                    trackEvent: 'tournament_button_clicked',
+                    needConfirm: false
+                }
+            },
+            {
+                id: 'btn_004',
+                key: 'settings',
+                category: 'main-menu',
+                icon: 'cog',
+                description: '游戏设置',
+                enabled: true,
+                texts: {
+                    'zh-CN': '设置',
+                    'en-US': 'Settings',
+                    'ja-JP': '設定',
+                    'ko-KR': '설정',
+                    'th-TH': 'การตั้งค่า'
+                },
+                style: {
+                    backgroundColor: 'transparent',
+                    textColor: '#ffffff',
+                    borderColor: 'rgba(255,255,255,0.3)',
+                    borderRadius: 12,
+                    fontSize: 14,
+                    padding: 12,
+                    shadowIntensity: 0,
+                    hoverOpacity: 100,
+                    width: 'auto'
+                },
+                action: {
+                    type: 'modal',
+                    target: 'settings-modal',
+                    params: {},
+                    trackEvent: 'settings_button_clicked',
+                    needConfirm: false
+                }
+            },
+            {
+                id: 'btn_005',
+                key: 'play_card',
+                category: 'game-controls',
+                icon: 'play',
+                description: '出牌按钮',
+                enabled: true,
+                texts: {
+                    'zh-CN': '出牌',
+                    'en-US': 'Play Card',
+                    'ja-JP': 'カードを出す',
+                    'ko-KR': '카드 내기',
+                    'th-TH': 'เล่นไพ่'
+                },
+                style: {
+                    backgroundColor: '#48bb78',
+                    textColor: '#ffffff',
+                    borderColor: '#38a169',
+                    borderRadius: 8,
+                    fontSize: 18,
+                    padding: 20,
+                    shadowIntensity: 10,
+                    hoverOpacity: 90,
+                    width: '100%'
+                },
+                action: {
+                    type: 'emit',
+                    target: 'play_card',
+                    params: {},
+                    trackEvent: 'card_played',
+                    needConfirm: true
+                }
+            },
+            {
+                id: 'btn_006',
+                key: 'pass_turn',
+                category: 'game-controls',
+                icon: 'pause',
+                description: '跳过回合',
+                enabled: true,
+                texts: {
+                    'zh-CN': '跳过',
+                    'en-US': 'Pass',
+                    'ja-JP': 'パス',
+                    'ko-KR': '패스',
+                    'th-TH': 'ผ่าน'
+                },
+                style: {
+                    backgroundColor: 'rgba(255,255,255,0.1)',
+                    textColor: '#a0aec0',
+                    borderColor: 'rgba(255,255,255,0.2)',
+                    borderRadius: 8,
+                    fontSize: 16,
+                    padding: 16,
+                    shadowIntensity: 0,
+                    hoverOpacity: 100,
+                    width: '100%'
+                },
+                action: {
+                    type: 'emit',
+                    target: 'pass_turn',
+                    params: {},
+                    trackEvent: 'turn_passed',
+                    needConfirm: false
+                }
+            },
+            {
+                id: 'btn_007',
+                key: 'buy_gems',
+                category: 'shop',
+                icon: 'star',
+                description: '购买宝石',
+                enabled: true,
+                texts: {
+                    'zh-CN': '💎 100',
+                    'en-US': '💎 100',
+                    'ja-JP': '💎 100',
+                    'ko-KR': '💎 100',
+                    'th-TH': '💎 100'
+                },
+                style: {
+                    backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    textColor: '#ffffff',
+                    borderColor: '#764ba2',
+                    borderRadius: 16,
+                    fontSize: 18,
+                    padding: 20,
+                    shadowIntensity: 12,
+                    hoverOpacity: 90,
+                    width: '100%'
+                },
+                action: {
+                    type: 'api',
+                    target: '/shop/purchase',
+                    params: { item: 'gems', amount: 100 },
+                    trackEvent: 'gem_purchase_initiated',
+                    needConfirm: true
+                }
+            }
+        ];
+
+        let currentButton = null;
+        let currentLang = 'zh-CN';
+        let hasChanges = false;
+
+        // 初始化
+        function init() {
+            renderButtonList();
+            setupEventListeners();
+        }
+
+        // 渲染按钮列表
+        function renderButtonList(category = 'all', search = '') {
+            const list = document.getElementById('buttonList');
+            let filtered = buttonData;
+
+            if (category !== 'all') {
+                filtered = filtered.filter(btn => btn.category === category);
+            }
+
+            if (search) {
+                filtered = filtered.filter(btn => 
+                    btn.key.toLowerCase().includes(search.toLowerCase()) ||
+                    Object.values(btn.texts).some(t => t.toLowerCase().includes(search.toLowerCase()))
+                );
+            }
+
+            list.innerHTML = filtered.map(btn => `
+                <div class="button-item ${currentButton?.id === btn.id ? 'active' : ''}" 
+                     data-id="${btn.id}"
+                     draggable="true"
+                     onclick="selectButton('${btn.id}')">
+                    <div class="button-drag-handle">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
+                    <div class="button-icon" style="background: ${btn.style.backgroundColor}">
+                        ${getIconHtml(btn.icon)}
+                    </div>
+                    <div class="button-info">
+                        <div class="button-name">${btn.texts['zh-CN']}</div>
+                        <div class="button-id">${btn.key}</div>
+                    </div>
+                    <div class="button-status ${btn.enabled ? 'enabled' : 'disabled'}"></div>
+                </div>
+            `).join('');
+
+            // 添加拖拽事件
+            setupDragAndDrop();
+        }
+
+        // 获取图标HTML
+        function getIconHtml(icon) {
+            const icons = {
+                'play': '<i class="fas fa-play" style="color: white;"></i>',
+                'pause': '<i class="fas fa-pause" style="color: white;"></i>',
+                'stop': '<i class="fas fa-stop" style="color: white;"></i>',
+                'star': '<i class="fas fa-star" style="color: white;"></i>',
+                'heart': '<i class="fas fa-heart" style="color: white;"></i>',
+                'cog': '<i class="fas fa-cog" style="color: white;"></i>',
+                'user': '<i class="fas fa-user" style="color: white;"></i>',
+                'shop': '<i class="fas fa-shopping-cart" style="color: white;"></i>',
+                'trophy': '<i class="fas fa-trophy" style="color: white;"></i>',
+            };
+            return icons[icon] || '';
+        }
+
+        // 选择按钮
+        function selectButton(buttonId) {
+            if (hasChanges) {
+                if (!confirm('有未保存的更改，是否继续？')) return;
+            }
+
+            currentButton = buttonData.find(btn => btn.id === buttonId);
+            if (!currentButton) return;
+
+            // 更新列表选中状态
+            document.querySelectorAll('.button-item').forEach(el => {
+                el.classList.toggle('active', el.dataset.id === buttonId);
+            });
+
+            // 显示编辑器
+            document.getElementById('basicSection').style.display = 'block';
+            document.getElementById('textSection').style.display = 'block';
+            document.getElementById('styleSection').style.display = 'block';
+            document.getElementById('actionSection').style.display = 'block';
+
+            // 填充表单
+            fillForm();
+
+            // 更新标题
+            document.getElementById('editorTitle').textContent = 
+                `编辑: ${currentButton.texts['zh-CN']}`;
+
+            hasChanges = false;
+        }
+
+        // 填充表单
+        function fillForm() {
+            if (!currentButton) return;
+
+            // 基本信息
+            document.getElementById('buttonId').value = currentButton.id;
+            document.getElementById('buttonKey').value = currentButton.key;
+            document.getElementById('buttonCategory').value = currentButton.category;
+            document.getElementById('buttonIcon').value = currentButton.icon;
+            document.getElementById('buttonDescription').value = currentButton.description || '';
+            document.getElementById('enableToggle').checked = currentButton.enabled;
+
+            // 多语言文本
+            Object.keys(currentButton.texts).forEach(lang => {
+                const input = document.querySelector(`.lang-text[data-lang="${lang}"]`);
+                if (input) input.value = currentButton.texts[lang];
+            });
+
+            // 样式
+            document.getElementById('bgColor').value = currentButton.style.backgroundColor;
+            document.getElementById('bgColorValue').value = currentButton.style.backgroundColor;
+            document.getElementById('textColor').value = currentButton.style.textColor;
+            document.getElementById('textColorValue').value = currentButton.style.textColor;
+            document.getElementById('borderColor').value = currentButton.style.borderColor;
+            document.getElementById('borderColorValue').value = currentButton.style.borderColor;
+            document.getElementById('borderRadius').value = currentButton.style.borderRadius;
+            document.getElementById('borderRadiusValue').textContent = currentButton.style.borderRadius + 'px';
+            document.getElementById('fontSize').value = currentButton.style.fontSize;
+            document.getElementById('fontSizeValue').textContent = currentButton.style.fontSize + 'px';
+            document.getElementById('padding').value = currentButton.style.padding;
+            document.getElementById('paddingValue').textContent = currentButton.style.padding + 'px';
+            document.getElementById('shadowIntensity').value = currentButton.style.shadowIntensity;
+            document.getElementById('shadowValue').textContent = currentButton.style.shadowIntensity;
+            document.getElementById('hoverOpacity').value = currentButton.style.hoverOpacity;
+            document.getElementById('hoverOpacityValue').textContent = currentButton.style.hoverOpacity + '%';
+            document.getElementById('buttonWidth').value = currentButton.style.width;
+
+            // 动作
+            document.getElementById('actionType').value = currentButton.action.type;
+            document.getElementById('actionTarget').value = currentButton.action.target;
+            document.getElementById('actionParams').value = JSON.stringify(currentButton.action.params, null, 2);
+            document.getElementById('trackEvent').value = currentButton.action.trackEvent || '';
+            document.getElementById('needConfirm').checked = currentButton.action.needConfirm;
+
+            // 更新预览
+            updatePreview();
+        }
+
+        // 更新预览
+        function updatePreview() {
+            const previewBtn = document.getElementById('previewButton');
+            if (!currentButton) return;
+
+            const text = document.querySelector(`.lang-text[data-lang="${currentLang}"]`)?.value || 
+                        currentButton.texts[currentLang];
+
+            previewBtn.textContent = text;
+            previewBtn.style.background = currentButton.style.backgroundColor;
+            previewBtn.style.color = currentButton.style.textColor;
+            previewBtn.style.border = `2px solid ${currentButton.style.borderColor}`;
+            previewBtn.style.borderRadius = currentButton.style.borderRadius + 'px';
+            previewBtn.style.fontSize = currentButton.style.fontSize + 'px';
+            previewBtn.style.padding = `${currentButton.style.padding}px ${currentButton.style.padding * 1.5}px`;
+            previewBtn.style.boxShadow = `0 ${currentButton.style.shadowIntensity}px ${currentButton.style.shadowIntensity * 2}px rgba(0,0,0,0.3)`;
+            previewBtn.style.opacity = currentButton.enabled ? '1' : '0.5';
+            previewBtn.style.width = currentButton.style.width;
+        }
+
+        // 设置事件监听
+        function setupEventListeners() {
+            // 分类标签
+            document.querySelectorAll('.category-tabs .tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.category-tabs .tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    renderButtonList(tab.dataset.category, document.getElementById('searchInput').value);
+                });
+            });
+
+            // 搜索
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                const activeCategory = document.querySelector('.category-tabs .tab.active').dataset.category;
+                renderButtonList(activeCategory, e.target.value);
+            });
+
+            // 语言标签
+            document.querySelectorAll('.lang-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.lang-content').forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.querySelector(`.lang-content[data-lang="${tab.dataset.lang}"]`).classList.add('active');
+                    currentLang = tab.dataset.lang;
+                    updatePreview();
+                });
+            });
+
+            // 颜色选择器
+            document.getElementById('bgColor').addEventListener('input', (e) => {
+                document.getElementById('bgColorValue').value = e.target.value;
+                if (currentButton) {
+                    currentButton.style.backgroundColor = e.target.value;
+                    hasChanges = true;
+                    updatePreview();
+                }
+            });
+
+            document.getElementById('textColor').addEventListener('input', (e) => {
+                document.getElementById('textColorValue').value = e.target.value;
+                if (currentButton) {
+                    currentButton.style.textColor = e.target.value;
+                    hasChanges = true;
+                    updatePreview();
+                }
+            });
+
+            document.getElementById('borderColor').addEventListener('input', (e) => {
+                document.getElementById('borderColorValue').value = e.target.value;
+                if (currentButton) {
+                    currentButton.style.borderColor = e.target.value;
+                    hasChanges = true;
+                    updatePreview();
+                }
+            });
+
+            // 滑块
+            const sliders = ['borderRadius', 'fontSize', 'padding', 'shadowIntensity', 'hoverOpacity'];
+            sliders.forEach(id => {
+                document.getElementById(id).addEventListener('input', (e) => {
+                    const suffix = id === 'hoverOpacity' ? '%' : 'px';
+                    document.getElementById(id + 'Value').textContent = e.target.value + suffix;
+                    if (currentButton) {
+                        currentButton.style[id] = parseInt(e.target.value);
+                        hasChanges = true;
+                        updatePreview();
+                    }
+                });
+            });
+
+            // 表单输入
+            const inputs = ['buttonKey', 'buttonCategory', 'buttonIcon', 'buttonDescription', 
+                           'buttonWidth', 'actionType', 'actionTarget', 'trackEvent'];
+            inputs.forEach(id => {
+                document.getElementById(id)?.addEventListener('input', () => {
+                    hasChanges = true;
+                });
+            });
+
+            // 语言文本
+            document.querySelectorAll('.lang-text').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    if (currentButton) {
+                        currentButton.texts[e.target.dataset.lang] = e.target.value;
+                        hasChanges = true;
+                        if (e.target.dataset.lang === currentLang) {
+                            updatePreview();
+                        }
+                    }
+                });
+            });
+
+            // 主题切换
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+                    opt.classList.add('active');
+                    const screen = document.getElementById('previewScreen');
+                    if (opt.dataset.theme === 'light') {
+                        screen.style.background = 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)';
+                    } else {
+                        screen.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
+                    }
+                });
+            });
+
+            // 启用开关
+            document.getElementById('enableToggle').addEventListener('change', (e) => {
+                if (currentButton) {
+                    currentButton.enabled = e.target.checked;
+                    hasChanges = true;
+                    renderButtonList();
+                    updatePreview();
+                }
+            });
+        }
+
+        // 设置拖拽
+        function setupDragAndDrop() {
+            const items = document.querySelectorAll('.button-item');
+            items.forEach(item => {
+                item.addEventListener('dragstart', () => item.classList.add('dragging'));
+                item.addEventListener('dragend', () => item.classList.remove('dragging'));
+            });
+        }
+
+        // 保存更改
+        function saveChanges() {
+            if (!currentButton) {
+                showToast('请先选择一个按钮', 'error');
+                return;
+            }
+
+            // 保存当前表单数据到按钮对象
+            currentButton.key = document.getElementById('buttonKey').value;
+            currentButton.category = document.getElementById('buttonCategory').value;
+            currentButton.icon = document.getElementById('buttonIcon').value;
+            currentButton.description = document.getElementById('buttonDescription').value;
+            currentButton.enabled = document.getElementById('enableToggle').checked;
+            currentButton.action.type = document.getElementById('actionType').value;
+            currentButton.action.target = document.getElementById('actionTarget').value;
+            currentButton.action.trackEvent = document.getElementById('trackEvent').value;
+            currentButton.action.needConfirm = document.getElementById('needConfirm').checked;
+
+            try {
+                currentButton.action.params = JSON.parse(document.getElementById('actionParams').value || '{}');
+            } catch (e) {
+                showToast('JSON参数格式错误', 'error');
+                return;
+            }
+
+            hasChanges = false;
+            renderButtonList();
+            showToast('保存成功！', 'success');
+
+            // 实际应用中，这里会发送API请求
+            console.log('Saved:', currentButton);
+        }
+
+        // 重置更改
+        function resetChanges() {
+            if (!currentButton) return;
+            if (confirm('确定要重置所有更改吗？')) {
+                fillForm();
+                hasChanges = false;
+                showToast('已重置', 'success');
+            }
+        }
+
+        // 显示Toast
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // 启动
+        init();
+    </script>
+</body>
+</html>

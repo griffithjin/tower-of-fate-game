@@ -1,0 +1,79 @@
+<!-- logo/tower-of-fate-logo-icon.svg - 仅图标版本 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="towerGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#FFA500"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <radialGradient id="bgGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#1A1A2E"/>
+      <stop offset="100%" style="stop-color:#0F1419"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="512" height="512" fill="url(#bgGradient)" rx="80"/>
+  
+  <!-- 光芒效果 -->
+  <g id="rays" opacity="0.5">
+    <line x1="256" y1="80" x2="180" y2="20" stroke="#FFD700" stroke-width="5" filter="url(#glow)"/>
+    <line x1="256" y1="80" x2="256" y2="10" stroke="#FFD700" stroke-width="5" filter="url(#glow)"/>
+    <line x1="256" y1="80" x2="332" y2="20" stroke="#FFD700" stroke-width="5" filter="url(#glow)"/>
+    <line x1="256" y1="80" x2="380" y2="50" stroke="#FFD700" stroke-width="4" filter="url(#glow)"/>
+    <line x1="256" y1="80" x2="132" y2="50" stroke="#FFD700" stroke-width="4" filter="url(#glow)"/>
+  </g>
+  
+  <!-- 塔身 -->
+  <g id="tower" transform="translate(0, 20)">
+    <!-- 底座 -->
+    <polygon points="256,440 170,360 342,360" fill="#8B4513"/>
+    
+    <!-- 下层 -->
+    <rect x="165" y="320" width="182" height="40" fill="#CD853F" rx="5"/>
+    <rect x="175" y="280" width="162" height="40" fill="#D2691E" rx="5"/>
+    <rect x="185" y="240" width="142" height="40" fill="#CD853F" rx="5"/>
+    <rect x="195" y="200" width="122" height="40" fill="#D2691E" rx="5"/>
+    
+    <!-- 中层 -->
+    <rect x="200" y="160" width="112" height="40" fill="#A0522D" rx="5"/>
+    <rect x="205" y="120" width="102" height="40" fill="#8B4513" rx="5"/>
+    <rect x="210" y="80" width="92" height="40" fill="#A0522D" rx="5"/>
+    
+    <!-- 上层-金色 -->
+    <rect x="215" y="50" width="82" height="30" fill="url(#towerGradient)" rx="3"/>
+    <rect x="222" y="25" width="68" height="25" fill="url(#towerGradient)" rx="3"/>
+    <rect x="228" y="5" width="56" height="20" fill="url(#towerGradient)" rx="3"/>
+    
+    <!-- 顶层A -->
+    <polygon points="256,5 225,-35 287,-35" fill="#FFD700" filter="url(#glow)"/>
+    <text x="256" y="-10" font-family="Arial, sans-serif" font-size="26" font-weight="bold" 
+          fill="#1A1A2E" text-anchor="middle">A</text>
+  </g>
+  
+  <!-- 四张卡牌环绕 -->
+  <g id="cards">
+    <g transform="translate(110, 200) rotate(-20)">
+      <rect width="36" height="50" fill="#FF6B6B" rx="5" stroke="#FFFFFF" stroke-width="2"/>
+      <text x="18" y="34" font-family="Arial" font-size="24" fill="white" text-anchor="middle">♥</text>
+    </g>
+    <g transform="translate(366, 200) rotate(20)">
+      <rect width="36" height="50" fill="#2C3E50" rx="5" stroke="#FFFFFF" stroke-width="2"/>
+      <text x="18" y="34" font-family="Arial" font-size="24" fill="white" text-anchor="middle">♠</text>
+    </g>
+    <g transform="translate(95, 320) rotate(-15)">
+      <rect width="36" height="50" fill="#FFD93D" rx="5" stroke="#FFFFFF" stroke-width="2"/>
+      <text x="18" y="34" font-family="Arial" font-size="24" fill="#1A1A2E" text-anchor="middle">♦</text>
+    </g>
+    <g transform="translate(381, 320) rotate(15)">
+      <rect width="36" height="50" fill="#6BCB77" rx="5" stroke="#FFFFFF" stroke-width="2"/>
+      <text x="18" y="34" font-family="Arial" font-size="24" fill="white" text-anchor="middle">♣</text>
+    </g>
+  </g>
+</svg>
