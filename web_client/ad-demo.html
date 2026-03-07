@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>广告系统演示 - 命运塔</title>
+    <link rel="stylesheet" href="css/advertising-system.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #6366f1, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #94a3b8;
+            margin-bottom: 40px;
+        }
+        
+        .demo-section {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        
+        .demo-title {
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+        }
+        
+        .btn.secondary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .btn.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .ad-display-area {
+            min-height: 200px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed rgba(99, 102, 241, 0.3);
+        }
+        
+        .ad-display-area:empty::before {
+            content: '广告将在这里显示';
+            color: #64748b;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .stat-box {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #6366f1;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+        
+        .code-block {
+            background: #0f172a;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin-top: 16px;
+        }
+        
+        .code-block .comment {
+            color: #64748b;
+        }
+        
+        .code-block .keyword {
+            color: #c084fc;
+        }
+        
+        .code-block .string {
+            color: #4ade80;
+        }
+        
+        .code-block .function {
+            color: #60a5fa;
+        }
+        
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid #3b82f6;
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 16px;
+        }
+        
+        .info-box h4 {
+            margin-bottom: 8px;
+            color: #60a5fa;
+        }
+        
+        .placement-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .placement-item {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .placement-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateX(4px);
+        }
+        
+        .placement-icon {
+            font-size: 1.5rem;
+        }
+        
+        .placement-info {
+            flex: 1;
+        }
+        
+        .placement-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .placement-id {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+        
+        .placement-badge {
+            padding: 4px 8px;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 4px;
+            font-size: 0.7rem;
+            color: #818cf8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 命运塔广告系统演示</h1>
+        <p class="subtitle">17个非侵入式广告点位 + 后台可视化配置</p>
+        
+        <!-- 统计概览 -->
+        <div class="demo-section">
+            <div class="demo-title">📊 今日统计数据</div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-value" id="stat-impressions">0</div>
+                    <div class="stat-label">展示次数</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="stat-clicks">0</div>
+                    <div class="stat-label">点击次数</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="stat-ctr">0%</div>
+                    <div class="stat-label">点击率</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">¥<span id="stat-revenue">0</span></div>
+                    <div class="stat-label">广告收入</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 点位列表 -->
+        <div class="demo-section">
+            <div class="demo-title">📍 17个广告点位 - 点击测试</div>
+            <div class="placement-list" id="placement-list">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 广告展示区域 -->
+        <div class="demo-section">
+            <div class="demo-title">🎨 广告展示效果</div>
+            <div class="ad-display-area" id="ad-display-area">
+                <!-- 广告将在这里显示 -->
+            </div>
+            
+            <div class="btn-group" style="margin-top: 16px;">
+                <button class="btn" onclick="hideCurrentAd()">隐藏广告</button>
+                <button class="btn secondary" onclick="showRewardAd()">🎁 激励视频</button>
+                <button class="btn warning" onclick="clearStats()">清除统计</button>
+            </div>
+        </div>
+        
+        <!-- 使用示例 -->
+        <div class="demo-section">
+            <div class="demo-title">💻 代码示例</div>
+            
+            <div class="info-box">
+                <h4>基础用法</h4>
+                <p>在HTML中添加广告容器，然后通过JavaScript触发展示</p>
+            </div>
+            
+            <div class="code-block">
+<span class="comment">// 1. 展示广告</span>
+<span class="function">window.adSystem.showAd</span>(<span class="string">'victory-screen'</span>);
+
+<span class="comment">// 2. 隐藏广告</span>
+<span class="function">window.adSystem.hideAd</span>(<span class="string">'victory-screen'</span>);
+
+<span class="comment">// 3. 获取统计数据</span>
+<span class="keyword">const</span> stats = <span class="function">window.adSystem.getStats</span>();
+<span class="function">console.log</span>(stats.revenue); <span class="comment">// 今日收入</span>
+
+<span class="comment">// 4. 创建广告活动</span>
+<span class="function">window.adSystem.addCampaign</span>({
+  name: <span class="string">'新手推广'</span>,
+  type: <span class="string">'banner'</span>,
+  placements: [<span class="string">'main-menu-banner'</span>],
+  content: { image: <span class="string">'/ads/banner.jpg'</span>, link: <span class="string">'/shop'</span> }
+});
+            </div>
+        </div>
+        
+        <!-- 后台管理入口 -->
+        <div class="demo-section">
+            <div class="demo-title">🔧 后台管理</div>
+            <p style="color: #94a3b8; margin-bottom: 16px;">
+                访问后台管理界面查看完整功能：数据统计、活动管理、点位配置等
+            </p>
+            <a href="admin/ad-manager.html" class="btn">
+                打开广告管理后台 →
+            </a>
+        </div>
+    
+    <!-- 广告容器 -->
+    <div data-ad-placement="main-menu-banner"></div>
+    <div data-ad-placement="victory-screen"></div>
+    <div data-ad-placement="defeat-screen"></div>
+    <div data-ad-placement="pause-menu"></div>
+    <div data-ad-placement="round-end"></div>
+    
+    <script src="js/advertising-system.js"></script>
+    
+    <script>
+        // 广告点位配置
+        const placements = [
+            { id: 'main-menu-banner', name: '主菜单底部横幅', icon: '🏠', type: 'banner' },
+            { id: 'loading-screen', name: '游戏加载页', icon: '⏳', type: 'video' },
+            { id: 'round-end', name: '回合结束间隙', icon: '🔄', type: 'banner' },
+            { id: 'pause-menu', name: '暂停菜单', icon: '⏸️', type: 'banner' },
+            { id: 'victory-screen', name: '胜利结算页', icon: '🏆', type: 'reward' },
+            { id: 'defeat-screen', name: '失败结算页', icon: '💔', type: 'banner' },
+            { id: 'tournament-register', name: '锦标赛报名页', icon: '🏁', type: 'banner' },
+            { id: 'shop-sidebar', name: '商店侧边栏', icon: '🛒', type: 'skyscraper' },
+            { id: 'profile-footer', name: '用户中心底部', icon: '👤', type: 'banner' },
+            { id: 'leaderboard-page', name: '排行榜页面', icon: '📊', type: 'banner' },
+            { id: 'postcard-gallery', name: '明信片收藏册', icon: '📮', type: 'native' },
+            { id: 'streak-selector', name: '连胜模式选择', icon: '🔥', type: 'banner' },
+            { id: 'spectator-sidebar', name: '观战模式侧边栏', icon: '👁️', type: 'skyscraper' },
+            { id: 'matchmaking-wait', name: '匹配等待', icon: '🔍', type: 'video' },
+            { id: 'daily-missions', name: '每日任务间隙', icon: '📋', type: 'native' },
+            { id: 'notification-inline', name: '通知消息内嵌', icon: '🔔', type: 'text' },
+            { id: 'settings-footer', name: '设置页面底部', icon: '⚙️', type: 'banner' }
+        ];
+        
+        // 渲染点位列表
+        function renderPlacementList() {
+            const container = document.getElementById('placement-list');
+            container.innerHTML = placements.map(p => `
+                <div class="placement-item" onclick="testPlacement('${p.id}')">
+                    <span class="placement-icon">${p.icon}</span>
+                    <div class="placement-info">
+                        <div class="placement-name">${p.name}</div>
+                        <div class="placement-id">${p.id}</div>
+                    </div>
+                    <span class="placement-badge">${p.type}</span>
+                </div>
+            `).join('');
+        }
+        
+        // 测试展示广告
+        function testPlacement(id) {
+            if (window.adSystem) {
+                const container = document.getElementById('ad-display-area');
+                container.innerHTML = '';
+                
+                const success = window.adSystem.showAd(id, { container });
+                
+                if (!success) {
+                    container.innerHTML = `
+                        <div style="text-align: center; color: #94a3b8;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+                            <div>广告点位未启用或频率限制</div>
+                            <div style="font-size: 0.85rem; margin-top: 0.5rem;">ID: ${id}</div>
+                        </div>
+                    `;
+                }
+                
+                updateStats();
+            }
+        }
+        
+        // 隐藏当前广告
+        function hideCurrentAd() {
+            if (window.adSystem) {
+                window.adSystem.hideAllAds();
+                document.getElementById('ad-display-area').innerHTML = '';
+            }
+        }
+        
+        // 展示激励视频
+        function showRewardAd() {
+            const container = document.getElementById('ad-display-area');
+            container.innerHTML = `
+                <div class="ad-wrapper ad-reward-video" style="max-width: 400px;">
+                    <div class="reward-video-header">
+                        <span class="reward-badge">🎁 观看获得奖励</span>
+                    </div>
+                    <div style="background: #1e1b4b; padding: 40px; text-align: center;">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">▶️</div>
+                        <div style="color: #818cf8;">激励视频演示</div>
+                    </div>
+                    <div class="reward-video-footer">
+                        <div class="reward-info">
+                            <span class="reward-icon">💎</span>
+                            <span class="reward-text">获得 50 宝石</span>
+                        </div>
+                        <button class="claim-reward-btn" onclick="claimDemoReward()">
+                            领取奖励
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 领取演示奖励
+        function claimDemoReward() {
+            alert('🎁 恭喜！你获得了 50 宝石！');
+            hideCurrentAd();
+            updateStats();
+        }
+        
+        // 更新统计数据
+        function updateStats() {
+            if (window.adSystem) {
+                const stats = window.adSystem.getStats();
+                document.getElementById('stat-impressions').textContent = stats.sessionImpressions.toLocaleString();
+                document.getElementById('stat-clicks').textContent = stats.sessionClicks.toLocaleString();
+                
+                const ctr = stats.sessionImpressions > 0 
+                    ? ((stats.sessionClicks / stats.sessionImpressions) * 100).toFixed(2)
+                    : 0;
+                document.getElementById('stat-ctr').textContent = ctr + '%';
+                document.getElementById('stat-revenue').textContent = stats.revenue;
+            }
+        }
+        
+        // 清除统计
+        function clearStats() {
+            if (confirm('确定要清除统计数据吗？')) {
+                localStorage.removeItem('ad_revenue_stats');
+                localStorage.removeItem('ad_campaigns');
+                location.reload();
+            }
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            renderPlacementList();
+            
+            // 定时更新统计
+            setInterval(updateStats, 2000);
+            updateStats();
+        });
+    </script>
+</body>
+</html>
