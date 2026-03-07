@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>命运塔后台 - 明信片管理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0d1b2a 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        
+        .header {
+            background: linear-gradient(90deg, #1a1a3e 0%, #2d1b69 100%);
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #ffd700;
+        }
+        
+        .header h1 {
+            color: #ffd700;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a {
+            color: #888;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            color: #ffd700;
+            background: rgba(255,215,0,0.1);
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 30px; }
+        
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255,215,0,0.3);
+        }
+        .stat-value { font-size: 2em; color: #ffd700; font-weight: bold; }
+        .stat-label { color: #888; font-size: 0.9em; margin-top: 5px; }
+        
+        .section {
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.2) 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 1.3em;
+            color: #ffd700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #ffd700, #ffaa00);
+            color: #000;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255,215,0,0.3);
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .btn-danger {
+            background: rgba(255,0,0,0.3);
+            color: #ff6b6b;
+            border: 1px solid rgba(255,0,0,0.5);
+        }
+        .btn-sm { padding: 6px 12px; font-size: 0.85em; }
+        
+        /* 明信片网格 */
+        .postcard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .postcard-item {
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+            position: relative;
+        }
+        .postcard-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            border-color: rgba(255,215,0,0.3);
+        }
+        
+        .postcard-image-container {
+            height: 180px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.5) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .postcard-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .postcard-image-container .placeholder {
+            font-size: 4em;
+            opacity: 0.3;
+        }
+        .rarity-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .rarity-common { background: linear-gradient(45deg, #9e9e9e, #bdbdbd); color: #000; }
+        .rarity-rare { background: linear-gradient(45deg, #2196f3, #03a9f4); color: #fff; }
+        .rarity-epic { background: linear-gradient(45deg, #9c27b0, #e91e63); color: #fff; }
+        .rarity-legendary { background: linear-gradient(45deg, #ffd700, #ff9800); color: #000; }
+        
+        .postcard-content { padding: 20px; }
+        .postcard-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        .postcard-country {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .postcard-details {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .detail-item {
+            margin-bottom: 12px;
+        }
+        .detail-item:last-child { margin-bottom: 0; }
+        .detail-label {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .detail-value {
+            color: #fff;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+        .blessing-text {
+            color: #ffd700;
+            font-style: italic;
+            border-left: 3px solid #ffd700;
+            padding-left: 10px;
+            margin-top: 5px;
+        }
+        
+        .postcard-actions {
+            display: flex;
+            gap: 10px;
+            padding: 0 20px 20px;
+        }
+        .postcard-actions .btn { flex: 1; }
+        
+        /* 模态框 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        
+        .modal {
+            background: linear-gradient(135deg, #1a1a3e 0%, #0d1b2a 100%);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+        .modal-title {
+            font-size: 1.5em;
+            color: #ffd700;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-label {
+            display: block;
+            color: #888;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #ffd700;
+        }
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        /* 明信片预览 */
+        .preview-section {
+            background: rgba(255,215,0,0.05);
+            border: 1px solid rgba(255,215,0,0.2);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .preview-title {
+            color: #ffd700;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .postcard-preview {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 3px solid #ffd700;
+        }
+        .postcard-preview-image {
+            height: 200px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.5) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .postcard-preview-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .postcard-preview-image .placeholder {
+            font-size: 4em;
+            opacity: 0.5;
+        }
+        .postcard-preview-content {
+            padding: 20px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        }
+        .preview-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .preview-feature {
+            color: #ccc;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            text-align: center;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+        .preview-blessing {
+            color: #ffd700;
+            font-style: italic;
+            text-align: center;
+            padding: 15px;
+            background: rgba(255,215,0,0.1);
+            border-radius: 8px;
+            border-left: 4px solid #ffd700;
+        }
+        .preview-rarity {
+            text-align: center;
+            margin-top: 15px;
+            padding: 8px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .modal-actions .btn { flex: 1; }
+        
+        /* 批量创建 */
+        .batch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+        .batch-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .batch-item:hover {
+            background: rgba(255,215,0,0.1);
+        }
+        .batch-item.selected {
+            background: rgba(255,215,0,0.2);
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+        .batch-item input { accent-color: #ffd700; }
+        
+        .template-section {
+            background: rgba(0,200,255,0.05);
+            border: 1px solid rgba(0,200,255,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .template-section h4 {
+            color: #00c8ff;
+            margin-bottom: 10px;
+        }
+        .template-section code {
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #ffd700;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .empty-state span { font-size: 4em; display: block; margin-bottom: 20px; }
+        
+        /* 筛选栏 */
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .filter-bar select {
+            padding: 10px 15px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #fff;
+            min-width: 150px;
+        }
+        
+        @media (max-width: 768px) {
+            .header { flex-direction: column; gap: 15px; padding: 15px; }
+            .header h1 { font-size: 1.4em; }
+            .container { padding: 15px; }
+            .form-row { grid-template-columns: 1fr; }
+            .postcard-grid { grid-template-columns: 1fr; }
+            .modal { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎴 明信片管理</h1>
+        <div class="nav-links">
+            <a href="index.html">仪表盘</a>
+            <a href="tournament-enhanced.html">锦标赛</a>
+            <a href="postcard-manager.html" class="active">明信片</a>
+            <a href="asset-manager.html">资源</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- 统计栏 -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-value" id="totalPostcards">0</div>
+                <div class="stat-label">明信片总数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="legendaryCount">0</div>
+                <div class="stat-label">传说级</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="epicCount">0</div>
+                <div class="stat-label">史诗级</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="countryCount">0</div>
+                <div class="stat-label">覆盖国家</div>
+            </div>
+        </div>
+        
+        <!-- 筛选和列表 -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    🎴 明信片列表
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary btn-sm" onclick="showBatchModal()">📦 批量创建</button>
+                    <button class="btn btn-primary" onclick="showCreateModal()">+ 新建明信片</button>
+                </div>
+            </div>
+            
+            <div class="filter-bar">
+                <select id="filterRarity" onchange="renderPostcards()">
+                    <option value="">全部稀有度</option>
+                    <option value="common">普通</option>
+                    <option value="rare">稀有</option>
+                    <option value="epic">史诗</option>
+                    <option value="legendary">传说</option>
+                </select>
+                <select id="filterCountry" onchange="renderPostcards()">
+                    <option value="">全部国家</option>
+                </select>
+            </div>
+            
+            <div class="postcard-grid" id="postcardList"></div>
+        </div>
+    </div>
+    
+    <!-- 创建/编辑模态框 -->
+    <div class="modal-overlay" id="postcardModal">
+        <div class="modal">
+            <div class="modal-title" id="modalTitle">创建明信片</div>
+            <form id="postcardForm">
+                <input type="hidden" id="postcardId">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">明信片名称</label>
+                        <input type="text" class="form-input" id="postcardName" placeholder="例如：东方明珠明信片" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">国家</label>
+                        <select class="form-select" id="postcardCountry" required>
+                            <option value="">-- 选择国家 --</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">稀有度</label>
+                        <select class="form-select" id="postcardRarity">
+                            <option value="common">普通 (Common)</option>
+                            <option value="rare">稀有 (Rare)</option>
+                            <option value="epic">史诗 (Epic)</option>
+                            <option value="legendary">传说 (Legendary)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">图片路径</label>
+                        <input type="text" class="form-input" id="postcardImage" placeholder="postcards/cn.png">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">🏛️ 本地特色</label>
+                    <textarea class="form-textarea" id="localFeature" placeholder="描述这个地标/塔的特色，例如：上海地标，468米高塔，是亚洲最高的电视塔..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">💌 祝福语</label>
+                    <textarea class="form-textarea" id="blessing" placeholder="玩家获得的祝福语，例如：愿你如东方明珠般璀璨！"></textarea>
+                </div>
+                
+                <!-- 实时预览 -->
+                <div class="preview-section">
+                    <div class="preview-title">👁️ 实时预览</div>
+                    <div class="postcard-preview">
+                        <div class="postcard-preview-image">
+                            <img id="previewImg" style="display: none;">
+                            <div class="placeholder" id="previewPlaceholder">🏰</div>
+                        </div>
+                        <div class="postcard-preview-content">
+                            <div class="preview-name" id="previewName">明信片名称</div>
+                            <div class="preview-feature" id="previewFeature">本地特色描述...</div>
+                            <div class="preview-blessing" id="previewBlessing">祝福语内容...</div>
+                            <div class="preview-rarity rarity-common" id="previewRarity">COMMON</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('postcardModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 批量创建模态框 -->
+    <div class="modal-overlay" id="batchModal">
+        <div class="modal">
+            <div class="modal-title">📦 批量创建明信片</div>
+            
+            <p style="color: #888; margin-bottom: 20px;">选择国家，系统将自动为每个国家生成一张明信片</p>
+            
+            <div class="batch-grid" id="batchCountryGrid"></div>
+            
+            <div class="template-section">
+                <h4>命名模板</h4>
+                <input type="text" class="form-input" id="batchNameTemplate" value="{country}明信片"
+                       placeholder="使用 {country} 作为国家名占位符">
+            </div>
+            
+            <div class="template-section">
+                <h4>祝福语模板</h4>
+                <input type="text" class="form-input" id="batchBlessingTemplate" value="愿你征服{country}的每一座塔！"
+                       placeholder="使用 {country} 作为国家名占位符">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">默认稀有度</label>
+                <select class="form-select" id="batchRarity">
+                    <option value="common">普通</option>
+                    <option value="rare">稀有</option>
+                    <option value="epic" selected>史诗</option>
+                    <option value="legendary">传说</option>
+                </select>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('batchModal')">取消</button>
+                <button class="btn btn-primary" onclick="confirmBatchCreate()">确认创建</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+// ==================== 数据存储 ====================
+let postcards = JSON.parse(localStorage.getItem('ft_postcards')) || [];
+let towers = JSON.parse(localStorage.getItem('ft_towers')) || [];
+let countries = [
+    { code: 'CN', name: '中国', flag: '🇨🇳' },
+    { code: 'US', name: '美国', flag: '🇺🇸' },
+    { code: 'JP', name: '日本', flag: '🇯🇵' },
+    { code: 'GB', name: '英国', flag: '🇬🇧' },
+    { code: 'FR', name: '法国', flag: '🇫🇷' },
+    { code: 'DE', name: '德国', flag: '🇩🇪' },
+    { code: 'IT', name: '意大利', flag: '🇮🇹' },
+    { code: 'ES', name: '西班牙', flag: '🇪🇸' },
+    { code: 'RU', name: '俄罗斯', flag: '🇷🇺' },
+    { code: 'BR', name: '巴西', flag: '🇧🇷' },
+    { code: 'IN', name: '印度', flag: '🇮🇳' },
+    { code: 'AU', name: '澳大利亚', flag: '🇦🇺' },
+    { code: 'CA', name: '加拿大', flag: '🇨🇦' },
+    { code: 'KR', name: '韩国', flag: '🇰🇷' },
+    { code: 'MX', name: '墨西哥', flag: '🇲🇽' },
+    { code: 'TH', name: '泰国', flag: '🇹🇭' },
+    { code: 'VN', name: '越南', flag: '🇻🇳' },
+    { code: 'SG', name: '新加坡', flag: '🇸🇬' },
+    { code: 'MY', name: '马来西亚', flag: '🇲🇾' },
+    { code: 'ID', name: '印度尼西亚', flag: '🇮🇩' }
+];
+
+// ==================== 初始化 ====================
+document.addEventListener('DOMContentLoaded', () => {
+    initMockData();
+    loadData();
+    populateSelects();
+    renderPostcards();
+    updateStats();
+    renderBatchGrid();
+    setupLivePreview();
+});
+
+function initMockData() {
+    if (postcards.length === 0) {
+        postcards = [
+            {
+                id: 'postcard_cn_001',
+                name: '东方明珠明信片',
+                country: 'CN',
+                image: 'postcards/cn.png',
+                localFeature: '上海地标，468米高塔，是亚洲最高的电视塔之一',
+                blessing: '愿你如东方明珠般璀璨！',
+                rarity: 'legendary'
+            },
+            {
+                id: 'postcard_us_001',
+                name: '自由女神明信片',
+                country: 'US',
+                image: 'postcards/us.png',
+                localFeature: '纽约港的自由象征，高93米的铜像',
+                blessing: '愿自由之光永远照耀你！',
+                rarity: 'epic'
+            },
+            {
+                id: 'postcard_jp_001',
+                name: '富士山明信片',
+                country: 'JP',
+                image: 'postcards/jp.png',
+                localFeature: '日本圣山，海拔3776米，完美的火山锥形',
+                blessing: '愿你的事业如富士山般雄伟！',
+                rarity: 'epic'
+            },
+            {
+                id: 'postcard_gb_001',
+                name: '大本钟明信片',
+                country: 'GB',
+                image: 'postcards/gb.png',
+                localFeature: '伦敦地标，96米高的哥特式钟楼',
+                blessing: '愿时间带给你智慧与荣耀！',
+                rarity: 'rare'
+            },
+            {
+                id: 'postcard_fr_001',
+                name: '埃菲尔铁塔明信片',
+                country: 'FR',
+                image: 'postcards/fr.png',
+                localFeature: '巴黎地标，330米高的铁娘子',
+                blessing: '愿浪漫与优雅伴你左右！',
+                rarity: 'epic'
+            }
+        ];
+        saveData();
+    }
+}
+
+function loadData() {
+    postcards = JSON.parse(localStorage.getItem('ft_postcards')) || [];
+    towers = JSON.parse(localStorage.getItem('ft_towers')) || [];
+}
+
+function saveData() {
+    localStorage.setItem('ft_postcards', JSON.stringify(postcards));
+}
+
+function populateSelects() {
+    const countrySelect = document.getElementById('postcardCountry');
+    countrySelect.innerHTML = '<option value="">-- 选择国家 --</option>' + 
+        countries.map(c => `<option value="${c.code}">${c.flag} ${c.name}</option>`).join('');
+    
+    const filterCountry = document.getElementById('filterCountry');
+    filterCountry.innerHTML = '<option value="">全部国家</option>' + 
+        countries.map(c => `<option value="${c.code}">${c.flag} ${c.name}</option>`).join('');
+}
+
+// ==================== 渲染 ====================
+function renderPostcards() {
+    const container = document.getElementById('postcardList');
+    const rarityFilter = document.getElementById('filterRarity').value;
+    const countryFilter = document.getElementById('filterCountry').value;
+    
+    let filtered = postcards;
+    if (rarityFilter) filtered = filtered.filter(p => p.rarity === rarityFilter);
+    if (countryFilter) filtered = filtered.filter(p => p.country === countryFilter);
+    
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <span>🎴</span>
+                <p>暂无明信片</p>
+                <p style="font-size: 0.9em; margin-top: 10px;">点击"新建明信片"创建第一个</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = filtered.map(p => {
+        const country = countries.find(c => c.code === p.country);
+        const rarityNames = { common: '普通', rare: '稀有', epic: '史诗', legendary: '传说' };
+        
+        return `
+            <div class="postcard-item">
+                <div class="postcard-image-container">
+                    ${p.image ? `
+                        <img src="${p.image}" alt="${p.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'placeholder\\'>🏰</div>';">
+                    ` : '<div class="placeholder">🏰</div>'}
+                    <span class="rarity-badge rarity-${p.rarity}">${rarityNames[p.rarity]}</span>
+                </div>
+                
+                <div class="postcard-content">
+                    <div class="postcard-name">${p.name}</div>
+                    <div class="postcard-country">
+                        ${country ? country.flag : '🌐'} ${country ? country.name : p.country}
+                    </div>
+                    
+                    <div class="postcard-details">
+                        <div class="detail-item">
+                            <div class="detail-label">🏛️ 本地特色</div>
+                            <div class="detail-value">${p.localFeature || '暂无描述'}</div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-label">💌 祝福语</div>
+                            <div class="blessing-text">${p.blessing || '暂无祝福语'}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="postcard-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="editPostcard('${p.id}')">编辑</button>
+                    <button class="btn btn-danger btn-sm" onclick="deletePostcard('${p.id}')">删除</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateStats() {
+    document.getElementById('totalPostcards').textContent = postcards.length;
+    document.getElementById('legendaryCount').textContent = postcards.filter(p => p.rarity === 'legendary').length;
+    document.getElementById('epicCount').textContent = postcards.filter(p => p.rarity === 'epic').length;
+    document.getElementById('countryCount').textContent = new Set(postcards.map(p => p.country)).size;
+}
+
+function renderBatchGrid() {
+    const grid = document.getElementById('batchCountryGrid');
+    const existingCountries = new Set(postcards.map(p => p.country));
+    
+    grid.innerHTML = countries.map(c => `
+        <div class="batch-item" onclick="toggleBatchItem(this, '${c.code}')">
+            <input type="checkbox" value="${c.code}" onchange="event.stopPropagation()"
+                   ${existingCountries.has(c.code) ? 'disabled' : ''}>
+            <span>${c.flag} ${c.name} ${existingCountries.has(c.code) ? '(已有)' : ''}</span>
+        </div>
+    `).join('');
+}
+
+// ==================== 模态框操作 ====================
+function showCreateModal() {
+    document.getElementById('postcardForm').reset();
+    document.getElementById('postcardId').value = '';
+    document.getElementById('modalTitle').textContent = '创建明信片';
+    updatePreview();
+    openModal('postcardModal');
+}
+
+function editPostcard(id) {
+    const p = postcards.find(x => x.id === id);
+    if (!p) return;
+    
+    document.getElementById('postcardId').value = p.id;
+    document.getElementById('postcardName').value = p.name;
+    document.getElementById('postcardCountry').value = p.country;
+    document.getElementById('postcardRarity').value = p.rarity;
+    document.getElementById('postcardImage').value = p.image || '';
+    document.getElementById('localFeature').value = p.localFeature || '';
+    document.getElementById('blessing').value = p.blessing || '';
+    
+    document.getElementById('modalTitle').textContent = '编辑明信片';
+    updatePreview();
+    openModal('postcardModal');
+}
+
+function showBatchModal() {
+    renderBatchGrid();
+    openModal('batchModal');
+}
+
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
+
+// ==================== 表单处理 ====================
+document.getElementById('postcardForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    savePostcard();
+});
+
+function savePostcard() {
+    const id = document.getElementById('postcardId').value;
+    const data = {
+        id: id || 'postcard_' + document.getElementById('postcardCountry').value.toLowerCase() + '_' + Date.now(),
+        name: document.getElementById('postcardName').value,
+        country: document.getElementById('postcardCountry').value,
+        rarity: document.getElementById('postcardRarity').value,
+        image: document.getElementById('postcardImage').value,
+        localFeature: document.getElementById('localFeature').value,
+        blessing: document.getElementById('blessing').value
+    };
+    
+    if (id) {
+        const idx = postcards.findIndex(p => p.id === id);
+        if (idx >= 0) postcards[idx] = data;
+    } else {
+        postcards.push(data);
+    }
+    
+    saveData();
+    renderPostcards();
+    updateStats();
+    closeModal('postcardModal');
+    showToast('明信片已保存');
+}
+
+function deletePostcard(id) {
+    if (!confirm('确定要删除这张明信片吗？')) return;
+    postcards = postcards.filter(p => p.id !== id);
+    saveData();
+    renderPostcards();
+    updateStats();
+    showToast('明信片已删除');
+}
+
+function confirmBatchCreate() {
+    const nameTemplate = document.getElementById('batchNameTemplate').value || '{country}明信片';
+    const blessingTemplate = document.getElementById('batchBlessingTemplate').value || '愿你征服{country}的每一座塔！';
+    const rarity = document.getElementById('batchRarity').value;
+    
+    const selectedCountries = Array.from(document.querySelectorAll('#batchCountryGrid input:checked:not([disabled])')).map(cb => cb.value);
+    
+    if (selectedCountries.length === 0) {
+        alert('请至少选择一个国家');
+        return;
+    }
+    
+    selectedCountries.forEach(code => {
+        const country = countries.find(c => c.code === code);
+        postcards.push({
+            id: 'postcard_' + code.toLowerCase() + '_' + Date.now(),
+            name: nameTemplate.replace('{country}', country.name),
+            country: code,
+            rarity: rarity,
+            image: `postcards/${code.toLowerCase()}.png`,
+            localFeature: `${country.name}的独特地标`,
+            blessing: blessingTemplate.replace('{country}', country.name)
+        });
+    });
+    
+    saveData();
+    renderPostcards();
+    updateStats();
+    closeModal('batchModal');
+    showToast(`成功创建 ${selectedCountries.length} 张明信片`);
+}
+
+// ==================== 实时预览 ====================
+function setupLivePreview() {
+    const fields = ['postcardName', 'localFeature', 'blessing', 'postcardRarity', 'postcardImage'];
+    fields.forEach(id => {
+        document.getElementById(id).addEventListener('input', updatePreview);
+    });
+}
+
+function updatePreview() {
+    const name = document.getElementById('postcardName').value || '明信片名称';
+    const feature = document.getElementById('localFeature').value || '本地特色描述...';
+    const blessing = document.getElementById('blessing').value || '祝福语内容...';
+    const rarity = document.getElementById('postcardRarity').value;
+    const image = document.getElementById('postcardImage').value;
+    
+    document.getElementById('previewName').textContent = name;
+    document.getElementById('previewFeature').textContent = feature;
+    document.getElementById('previewBlessing').textContent = blessing;
+    
+    const rarityEl = document.getElementById('previewRarity');
+    rarityEl.className = 'preview-rarity rarity-' + rarity;
+    rarityEl.textContent = rarity.toUpperCase();
+    
+    const imgEl = document.getElementById('previewImg');
+    const placeholderEl = document.getElementById('previewPlaceholder');
+    
+    if (image) {
+        imgEl.src = image;
+        imgEl.style.display = 'block';
+        imgEl.onerror = function() {
+            this.style.display = 'none';
+            placeholderEl.style.display = 'block';
+        };
+        imgEl.onload = function() {
+            placeholderEl.style.display = 'none';
+        };
+    } else {
+        imgEl.style.display = 'none';
+        placeholderEl.style.display = 'block';
+    }
+}
+
+function toggleBatchItem(el, code) {
+    const checkbox = el.querySelector('input[type="checkbox"]');
+    if (checkbox.disabled) return;
+    checkbox.checked = !checkbox.checked;
+    el.classList.toggle('selected', checkbox.checked);
+}
+
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+        background: linear-gradient(45deg, #ffd700, #ffaa00);
+        color: #000; padding: 15px 30px; border-radius: 10px;
+        font-weight: bold; z-index: 9999; animation: fadeInUp 0.3s;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// 点击遮罩关闭模态框
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.remove('active');
+        }
+    });
+});
+    </script>
+</body>
+</html>
