@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>命运塔·3D版</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow-x: hidden;
+        }
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+        }
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 400px;
+            height: 60vh;
+            z-index: 10;
+        }
+        #game-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .layer-info {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #FFD700;
+            font-size: 14px;
+            z-index: 30;
+        }
+        .layer-item {
+            padding: 5px 10px;
+            margin: 5px 0;
+            background: rgba(255,215,0,0.1);
+            border-radius: 5px;
+            border-left: 3px solid #FFD700;
+        }
+        .anger-cards {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #FF6B6B;
+            font-size: 12px;
+            z-index: 30;
+        }
+        .hand-cards {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+            max-width: 95%;
+            padding: 10px;
+            z-index: 30;
+            pointer-events: auto;
+        }
+        .card {
+            min-width: 50px;
+            height: 70px;
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card.selected {
+            border: 2px solid #FFD700;
+            transform: translateY(-10px);
+        }
+        .status-bar {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: white;
+            font-size: 14px;
+            z-index: 30;
+        }
+        .play-btn {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #1a1a2e;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 30;
+            pointer-events: auto;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="canvas-container"></div>
+        <div id="game-ui">
+            <div class="status-bar">
+                🐼 熊猫战队 4人 VS 🐺 战狼战队 4人 | 第1轮 | 我的回合
+            </div>
+            <div class="layer-info">
+                <div class="layer-item">🏰 A层 (13层)</div>
+                <div class="layer-item">👑 K层</div>
+                <div class="layer-item">👸 Q层</div>
+                <div class="layer-item">🤴 J层</div>
+                <div class="layer-item">🔟 10层</div>
+                <div class="layer-item">9️⃣ 9层</div>
+                <div class="layer-item">8️⃣ 8层</div>
+                <div class="layer-item">7️⃣ 7层</div>
+                <div class="layer-item">6️⃣ 6层</div>
+                <div class="layer-item">5️⃣ 5层</div>
+                <div class="layer-item">4️⃣ 4层</div>
+                <div class="layer-item">3️⃣ 3层</div>
+                <div class="layer-item" style="background: rgba(255,215,0,0.3);">🎯 2层 (出发层)</div>
+            </div>
+            <div class="anger-cards">
+                <div style="font-weight: bold; margin-bottom: 10px;">⚠️ 激怒牌</div>
+                <div>♥️A ♠️K ♦️Q</div>
+                <div>♣️J ♥️10 ♠️9</div>
+                <div>♦️8 ♣️7 ♥️6</div>
+                <div>♠️5 ♦️4 ♣️3</div>
+                <div style="margin-top: 10px; color: #FFD700;">👤 我: 第2层</div>
+            </div>
+            <button class="play-btn" onclick="playCard()">出牌</button>
+            <div class="hand-cards" id="handCards">
+                <!-- Cards will be generated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Three.js 3D Tower
+        let scene, camera, renderer, tower, playerAvatar;
+        let currentLayer = 2;
+
+        function init3D() {
+            const container = document.getElementById('canvas-container');
+            
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a2e);
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 5, 20);
+            camera.lookAt(0, 5, 0);
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+            
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 5);
+            scene.add(directionalLight);
+            
+            const towerLight = new THREE.PointLight(0xFFD700, 0.5, 30);
+            towerLight.position.set(0, 10, 0);
+            scene.add(towerLight);
+            
+            // Create Tower
+            createTower();
+            
+            // Create Player Avatar
+            createPlayerAvatar();
+            
+            // Animate
+            animate();
+        }
+
+        function createTower() {
+            tower = new THREE.Group();
+            
+            // 13 layers
+            const colors = [0xFFD700, 0xFFA500, 0xFF8C00, 0xD2691E, 0xCD853F, 
+                           0xA0522D, 0x8B4513, 0xA0522D, 0xCD853F, 0xD2691E,
+                           0xCD853F, 0xA0522D, 0x8B4513];
+            
+            for (let i = 0; i < 13; i++) {
+                const layer = createLayer(i, colors[i]);
+                layer.position.y = i * 0.8;
+                tower.add(layer);
+            }
+            
+            // Base
+            const baseGeometry = new THREE.CylinderGeometry(3, 3.5, 0.5, 8);
+            const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x4a4a4a });
+            const base = new THREE.Mesh(baseGeometry, baseMaterial);
+            base.position.y = -0.5;
+            tower.add(base);
+            
+            scene.add(tower);
+        }
+
+        function createLayer(index, color) {
+            const width = 3 - (index * 0.15);
+            const geometry = new THREE.CylinderGeometry(width, width + 0.1, 0.7, 8);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: color,
+                metalness: 0.3,
+                roughness: 0.4,
+                emissive: index > 9 ? color : 0x000000,
+                emissiveIntensity: index > 9 ? 0.2 : 0
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            
+            // Add layer number
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#FFD700';
+            ctx.font = 'bold 32px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const labels = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+            ctx.fillText(labels[index], 32, 32);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const labelGeometry = new THREE.PlaneGeometry(0.6, 0.6);
+            const labelMaterial = new THREE.MeshBasicMaterial({ 
+                map: texture, 
+                transparent: true 
+            });
+            const label = new THREE.Mesh(labelGeometry, labelMaterial);
+            label.position.set(0, 0, width + 0.1);
+            mesh.add(label);
+            
+            return mesh;
+        }
+
+        function createPlayerAvatar() {
+            const geometry = new THREE.SphereGeometry(0.3, 16, 16);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: 0xFFD700,
+                emissive: 0xFFD700,
+                emissiveIntensity: 0.5
+            });
+            playerAvatar = new THREE.Mesh(geometry, material);
+            playerAvatar.position.set(2, currentLayer * 0.8, 0);
+            scene.add(playerAvatar);
+        }
+
+        function movePlayerToLayer(layer) {
+            currentLayer = layer;
+            if (playerAvatar) {
+                const targetY = (layer - 1) * 0.8;
+                animatePlayerMove(targetY);
+            }
+        }
+
+        function animatePlayerMove(targetY) {
+            const startY = playerAvatar.position.y;
+            const duration = 1000;
+            const startTime = Date.now();
+            
+            function update() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                
+                playerAvatar.position.y = startY + (targetY - startY) * easeProgress;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            update();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (tower) {
+                tower.rotation.y += 0.002;
+            }
+            
+            renderer.render(scene, camera);
+        }
+
+        function generateHandCards() {
+            const suits = ['♥️', '♠️', '♦️', '♣️'];
+            const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+            const container = document.getElementById('handCards');
+            
+            for (let i = 0; i < 10; i++) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                const suit = suits[Math.floor(Math.random() * suits.length)];
+                const rank = ranks[Math.floor(Math.random() * ranks.length)];
+                card.innerHTML = `<div>${suit}</div><div style="font-size:20px;font-weight:bold;">${rank}</div>`;
+                card.onclick = () => selectCard(card);
+                container.appendChild(card);
+            }
+        }
+
+        let selectedCard = null;
+        function selectCard(card) {
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedCard = card;
+        }
+
+        function playCard() {
+            if (!selectedCard) {
+                alert('请先选择一张牌！');
+                return;
+            }
+            
+            // Simulate moving up a layer
+            if (currentLayer < 13) {
+                movePlayerToLayer(currentLayer + 1);
+            }
+            
+            selectedCard.remove();
+            selectedCard = null;
+        }
+
+        // Init
+        window.onload = () => {
+            init3D();
+            generateHandCards();
+        };
+
+        // Resize
+        window.addEventListener('resize', () => {
+            if (camera && renderer) {
+                const container = document.getElementById('canvas-container');
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            }
+        });
+    </script>
+</body>
+</html>
