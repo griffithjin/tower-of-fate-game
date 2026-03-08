@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>命运塔 Tower of Fate - 正式版</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            min-height: 100vh;
+            font-family: "Microsoft YaHei", -apple-system, sans-serif;
+            overflow: hidden;
+            color: white;
+        }
+        
+        /* 加载画面 */
+        #loading-screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s;
+        }
+        .loading-tower {
+            width: 100px; height: 200px;
+            background: linear-gradient(180deg, #ffd700 0%, #ff8c00 100%);
+            clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+            animation: loadingPulse 1s ease-in-out infinite;
+        }
+        @keyframes loadingPulse { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.1); } }
+        .loading-text { margin-top: 30px; font-size: 24px; color: #ffd700; }
+        
+        /* 游戏主容器 */
+        #game-container {
+            position: relative;
+            width: 100vw; height: 100vh;
+        }
+        #canvas-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+        }
+        
+        /* UI层级 */
+        .ui-layer {
+            position: absolute;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .ui-layer.interactive { pointer-events: auto; }
+        
+        /* 顶部状态栏 */
+        .hud-top {
+            top: 0; left: 0; right: 0;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, transparent 100%);
+        }
+        
+        /* 钻石计数器 */
+        .diamond-counter {
+            display: flex; align-items: center; gap: 10px;
+            background: linear-gradient(135deg, rgba(0,212,255,0.3), rgba(0,102,255,0.3));
+            border: 2px solid #00d4ff;
+            border-radius: 30px;
+            padding: 8px 20px;
+        }
+        .diamond-icon {
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, #00d4ff, #0066ff);
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            animation: diamondPulse 2s ease-in-out infinite;
+        }
+        @keyframes diamondPulse { 0%, 100% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.1) rotate(180deg); } }
+        .diamond-count { font-size: 24px; font-weight: 900; color: #00d4ff; }
+        
+        /* 塔信息 */
+        .tower-info {
+            text-align: center;
+            background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,140,0,0.2));
+            border: 2px solid #ffd700;
+            border-radius: 20px;
+            padding: 12px 25px;
+        }
+        .tower-name { font-size: 22px; font-weight: 900; color: #ffd700; }
+        .tower-level { font-size: 14px; color: #fff; margin-top: 4px; }
+        
+        /* 回合指示器 */
+        .turn-indicator {
+            background: linear-gradient(135deg, rgba(0,255,136,0.3), rgba(0,204,102,0.3));
+            border: 2px solid #00ff88;
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-size: 16px;
+            font-weight: 900;
+            color: #00ff88;
+        }
+        .turn-indicator.opponent {
+            background: linear-gradient(135deg, rgba(255,107,107,0.3), rgba(196,69,105,0.3));
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+        
+        /* 左侧进度面板 */
+        .progress-panel {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.7);
+            border-radius: 15px;
+            padding: 15px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .progress-title {
+            color: #ffd700;
+            font-weight: 900;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .layer-indicator {
+            display: flex; align-items: center; gap: 8px;
+            margin: 6px 0;
+            padding: 5px 10px;
+            border-radius: 8px;
+            opacity: 0.5;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        .layer-indicator.active {
+            opacity: 1;
+            background: linear-gradient(90deg, rgba(0,255,136,0.3), transparent);
+        }
+        .layer-indicator.current {
+            opacity: 1;
+            background: linear-gradient(90deg, rgba(255,215,0,0.4), transparent);
+            border-left: 3px solid #ffd700;
+        }
+        .layer-indicator.first-climber {
+            background: linear-gradient(90deg, rgba(255,0,255,0.4), transparent);
+            border-left: 3px solid #ff00ff;
+        }
+        .layer-dot { width: 10px; height: 10px; border-radius: 50%; background: #666; }
+        .layer-indicator.active .layer-dot { background: #00ff88; }
+        .layer-indicator.current .layer-dot { background: #ffd700; animation: dotPulse 1s infinite; }
+        .layer-indicator.first-climber .layer-dot { background: #ff00ff; }
+        @keyframes dotPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+        
+        /* 右侧激怒牌面板 */
+        .anger-panel {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.7);
+            border-radius: 15px;
+            padding: 15px;
+            border: 2px solid #ff4757;
+        }
+        .anger-title {
+            color: #ff4757;
+            font-weight: 900;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .anger-cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .anger-card {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 6px 10px;
+            background: linear-gradient(135deg, rgba(255,71,87,0.3), rgba(196,69,105,0.3));
+            border: 1px solid #ff4757;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .anger-card:hover { transform: scale(1.05); }
+        .anger-card.triggered {
+            animation: angerFlash 0.5s ease-in-out 3;
+            background: linear-gradient(135deg, rgba(255,0,0,0.8), rgba(139,0,0,0.8));
+        }
+        @keyframes angerFlash { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        
+        /* 守卫牌显示区 */
+        .guard-panel {
+            position: absolute;
+            left: 50%;
+            top: 15%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            border-radius: 20px;
+            padding: 20px 30px;
+            border: 2px solid #9b59b6;
+            text-align: center;
+        }
+        .guard-title {
+            color: #9b59b6;
+            font-weight: 900;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .guard-cards-display {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .guard-card {
+            width: 60px; height: 84px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 2px solid #fff;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .guard-card.hidden {
+            background: linear-gradient(135deg, #2c3e50 0%, #1a1a2e 100%);
+        }
+        .guard-card.hidden::after {
+            content: "❓";
+            font-size: 24px;
+        }
+        .guard-card.revealed {
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            border-color: #ffd700;
+            animation: cardFlip 1.5s ease-in-out;
+        }
+        @keyframes cardFlip {
+            0% { transform: rotateY(0deg); }
+            50% { transform: rotateY(90deg); }
+            100% { transform: rotateY(0deg); }
+        }
+        .guard-card .suit { font-size: 20px; }
+        .guard-card .rank { font-size: 18px; font-weight: bold; }
+        
+        /* 当前守卫显示 */
+        .current-guard-info {
+            position: absolute;
+            left: 50%;
+            top: 5%;
+            transform: translateX(-50%);
+            background: rgba(155,89,182,0.3);
+            border: 2px solid #9b59b6;
+            border-radius: 15px;
+            padding: 10px 25px;
+            font-size: 18px;
+            font-weight: 900;
+            color: #9b59b6;
+        }
+        
+        /* 手牌区域 */
+        .hand-cards-container {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            z-index: 30;
+            pointer-events: auto;
+        }
+        .hand-cards-info {
+            background: rgba(0,0,0,0.6);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #00d4ff;
+        }
+        .hand-cards {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            max-width: 90vw;
+            padding: 15px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            scroll-snap-type: x mandatory;
+        }
+        .card {
+            min-width: 70px; height: 98px;
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            scroll-snap-align: center;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .card:hover { transform: translateY(-10px) scale(1.05); }
+        .card.selected {
+            border: 3px solid #ffd700;
+            transform: translateY(-20px) scale(1.15);
+            box-shadow: 0 10px 30px rgba(255,215,0,0.5);
+            z-index: 100;
+        }
+        .card.playing {
+            animation: cardFly 1s ease-in-out forwards;
+        }
+        @keyframes cardFly {
+            0% { transform: translateY(-20px) scale(1.15); }
+            50% { transform: translateY(-200px) scale(0.8) rotateY(180deg); opacity: 0.8; }
+            100% { transform: translateY(-300px) scale(0.5); opacity: 0; }
+        }
+        .card .suit { font-size: 24px; }
+        .card .rank { font-size: 22px; font-weight: bold; }
+        .card.red { color: #e74c3c; }
+        .card.black { color: #2c3e50; }
+        
+        /* 操作按钮 */
+        .action-buttons {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            pointer-events: auto;
+        }
+        .btn-action {
+            padding: 15px 35px;
+            font-size: 18px;
+            font-weight: 900;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-action:hover {
+            transform: translateY(-5px) scale(1.05);
+        }
+        .btn-play {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+            color: #000;
+            box-shadow: 0 5px 20px rgba(0,255,136,0.4);
+        }
+        .btn-play:disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* 游戏记录面板 */
+        .game-record-panel {
+            position: absolute;
+            bottom: 200px;
+            left: 15px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 15px;
+            padding: 15px;
+            max-width: 250px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .record-title {
+            color: #ffd700;
+            font-weight: 900;
+            margin-bottom: 10px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .record-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            font-size: 12px;
+            border-left: 3px solid #00d4ff;
+        }
+        .record-round { color: #00d4ff; font-weight: bold; }
+        .record-action { color: #fff; margin-top: 2px; }
+        
+        /* 通知弹窗 */
+        .notification {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            border: 3px solid #ffd700;
+            border-radius: 20px;
+            padding: 30px 50px;
+            text-align: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            min-width: 300px;
+        }
+        .notification.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+        .notification-title { font-size: 28px; font-weight: 900; color: #ffd700; margin-bottom: 10px; }
+        .notification-text { font-size: 16px; color: #fff; }
+        .notification.success { border-color: #00ff88; }
+        .notification.success .notification-title { color: #00ff88; }
+        .notification.error { border-color: #ff4757; }
+        .notification.error .notification-title { color: #ff4757; }
+        .notification.warning { border-color: #ffa502; }
+        .notification.warning .notification-title { color: #ffa502; }
+        
+        /* 晋级提示 */
+        .level-up-indicator {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 48px;
+            font-weight: 900;
+            color: #ffd700;
+            text-shadow: 0 0 30px rgba(255,215,0,0.8);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 500;
+        }
+        .level-up-indicator.show {
+            animation: levelUpPop 2s ease-out forwards;
+        }
+        @keyframes levelUpPop {
+            0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+            20% { opacity: 1; transform: translateX(-50%) scale(1.2); }
+            80% { opacity: 1; transform: translateX(-50%) scale(1) translateY(-30px); }
+            100% { opacity: 0; transform: translateX(-50%) scale(1) translateY(-50px); }
+        }
+        
+        /* 首登者标识 */
+        .first-climber-badge {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #ff00ff, #ff1493);
+            padding: 20px 40px;
+            border-radius: 20px;
+            font-size: 24px;
+            font-weight: 900;
+            color: #fff;
+            text-align: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            box-shadow: 0 0 50px rgba(255,0,255,0.5);
+        }
+        .first-climber-badge.show {
+            animation: firstClimberAnim 3s ease-out forwards;
+        }
+        @keyframes firstClimberAnim {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            30% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            70% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+        }
+        
+        /* 玩家头像 */
+        .player-avatars {
+            position: absolute;
+            right: 15px;
+            top: 15%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .player-avatar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,0,0,0.6);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        .player-avatar .avatar-img {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .player-avatar.active { border: 2px solid #00ff88; }
+        .player-avatar.first-climber { border: 2px solid #ff00ff; }
+        
+        /* 游戏结束弹窗 */
+        .game-over-modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        .game-over-modal.show { display: flex; }
+        .game-over-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 4px solid #ffd700;
+            border-radius: 30px;
+            padding: 50px;
+            max-width: 500px;
+            text-align: center;
+            animation: modalPop 0.5s ease;
+        }
+        @keyframes modalPop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .game-over-title { font-size: 42px; font-weight: 900; color: #ffd700; margin-bottom: 20px; }
+        .game-over-text { font-size: 18px; color: #fff; margin-bottom: 30px; }
+        .game-over-buttons { display: flex; gap: 20px; justify-content: center; }
+        .btn-modal { padding: 15px 30px; font-size: 16px; font-weight: 900; border: none; border-radius: 25px; cursor: pointer; transition: all 0.3s; }
+        .btn-modal:hover { transform: scale(1.1); }
+        .btn-restart { background: linear-gradient(135deg, #00ff88, #00cc66); color: #000; }
+        .btn-exit { background: linear-gradient(135deg, #ff4757, #c44569); color: #fff; }
+        
+        /* 匹配结果提示 */
+        .match-result {
+            position: absolute;
+            top: 40%; left: 50%;
+            transform: translateX(-50%);
+            font-size: 36px;
+            font-weight: 900;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 500;
+        }
+        .match-result.show { animation: matchResultPop 1.5s ease-out forwards; }
+        @keyframes matchResultPop {
+            0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+            30% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+            100% { opacity: 0; transform: translateX(-50%) scale(1) translateY(-50px); }
+        }
+        .match-result.perfect { color: #00ff88; text-shadow: 0 0 20px rgba(0,255,136,0.8); }
+        .match-result.partial { color: #ffa502; text-shadow: 0 0 20px rgba(255,165,2,0.8); }
+        .match-result.fail { color: #ff4757; text-shadow: 0 0 20px rgba(255,71,87,0.8); }
+        
+        /* 滚动条样式 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: #ffd700; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ff8c00; }
+    </style>
+</head>
+<body>
+    <!-- 加载画面 -->
+    <div id="loading-screen">
+        <div class="loading-tower"></div>
+        <div class="loading-text">正在加载命运塔...</div>
+    </div>
+    
+    <!-- 游戏容器 -->
+    <div id="game-container">
+        <div id="canvas-container"></div>
+        
+        <!-- UI层 -->
+        <div class="hud-top ui-layer">
+            <div class="diamond-counter interactive">
+                <div class="diamond-icon"></div>
+                <div class="diamond-count" id="diamondCount">1000</div>
+            </div>
+            <div class="tower-info">
+                <div class="tower-name" id="towerName">🏰 东方明珠</div>
+                <div class="tower-level">当前: <span id="currentLayer">2层</span> | 目标: A层</div>
+            </div>
+            <div class="turn-indicator" id="turnIndicator">你的回合</div>
+        </div>
+        
+        <!-- 当前守卫信息 -->
+        <div class="current-guard-info ui-layer" id="guardInfo">
+            👹 第1层守卫: ♠️黑桃
+        </div>
+        
+        <!-- 守卫牌面板 -->
+        <div class="guard-panel ui-layer" id="guardPanel">
+            <div class="guard-title">🎴 守卫手牌 (点击翻开)</div>
+            <div class="guard-cards-display" id="guardCards"></div>
+        </div>
+        
+        <!-- 左侧进度面板 -->
+        <div class="progress-panel ui-layer">
+            <div class="progress-title">📊 攀登进度</div>
+            <div id="layerIndicators"></div>
+        </div>
+        
+        <!-- 右侧激怒牌面板 -->
+        <div class="anger-panel ui-layer">
+            <div class="anger-title">⚠️ 激怒牌</div>
+            <div class="anger-cards-container" id="angerCards"></div>
+        </div>
+        
+        <!-- 玩家头像列表 -->
+        <div class="player-avatars ui-layer" id="playerAvatars"></div>
+        
+        <!-- 手牌区域 -->
+        <div class="hand-cards-container">
+            <div class="hand-cards-info">手牌: <span id="handCount">52</span>/52 张 | 选中后点击出牌</div>
+            <div class="hand-cards interactive" id="handCards"></div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="action-buttons">
+            <button class="btn-action btn-play" id="playBtn" onclick="game.playCard()">出牌</button>
+        </div>
+        
+        <!-- 游戏记录 -->
+        <div class="game-record-panel ui-layer">
+            <div class="record-title">📜 游戏记录</div>
+            <div id="gameRecords"></div>
+        </div>
+        
+        <!-- 通知 -->
+        <div class="notification" id="notification">
+            <div class="notification-title" id="notifTitle"></div>
+            <div class="notification-text" id="notifText"></div>
+        </div>
+        
+        <!-- 晋级提示 -->
+        <div class="level-up-indicator" id="levelUpIndicator">+1 晋级!</div>
+        
+        <!-- 匹配结果 -->
+        <div class="match-result" id="matchResult"></div>
+        
+        <!-- 首登者徽章 -->
+        <div class="first-climber-badge" id="firstClimberBadge">
+            <div>👑 首位登顶!</div>
+            <div style="font-size: 16px; margin-top: 10px;">你已成为首登者</div>
+        </div>
+        
+        <!-- 游戏结束弹窗 -->
+        <div class="game-over-modal" id="gameOverModal">
+            <div class="game-over-content">
+                <div class="game-over-title" id="gameOverTitle">🎮 游戏结束</div>
+                <div class="game-over-text" id="gameOverText">手牌已用完!</div>
+                <div class="game-over-buttons">
+                    <button class="btn-modal btn-restart" onclick="game.restart()">🔄 重新开始</button>
+                    <button class="btn-modal btn-exit" onclick="game.exit()">🚪 退出游戏</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+/**
+ * ==========================================
+ * 命运塔 Tower of Fate - 完整正式版游戏逻辑
+ * ==========================================
+ */
+
+// 游戏配置常量
+const CONFIG = {
+    LAYER_NAMES: ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'],
+    SUITS: ['♠', '♥', '♣', '♦'],
+    SUIT_NAMES: { '♠': '黑桃', '♥': '红桃', '♣': '梅花', '♦': '方块' },
+    RANKS: ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'],
+    TOTAL_GUARDS: 13,
+    CARDS_PER_GUARD: 13,
+    ANGER_CARDS_PER_LAYER: 3,
+    HAND_SIZE: 52
+};
+
+// 塔图片列表（基于assets目录）
+const TOWER_IMAGES = [
+    'angkor-wat.png', 'arenal.png', 'aurora.png', 'baobab.png', 'big-ben.png',
+    'blue-mosque.png', 'borobudur.png', 'bran-castle.png', 'brandenburg-gate.png',
+    'burj-khalifa.png', 'cn-tower.png', 'eiffel-tower.png', 'empire-state.png'
+];
+
+// 50个头像
+const AVATARS = [
+    '🐼', '🐺', '🦁', '🐯', '🦊', '🐸', '🐙', '🦄', '🐲', '🦖',
+    '🐵', '🐶', '🐱', '🐭', '🐹', '🐰', '🦝', '🐻', '🐨', '🐼',
+    '🐔', '🐧', '🐦', '🐤', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴',
+    '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦟', '🦗', '🕷️',
+    '🦂', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞'
+];
+
+/**
+ * 游戏主类
+ */
+class TowerOfFateGame {
+    constructor() {
+        this.state = {
+            currentLayer: 0,           // 当前层数 (0-12)
+            currentGuard: 0,           // 当前守卫索引
+            playerLayer: 0,            // 玩家所在层
+            playerHand: [],            // 玩家手牌
+            guards: [],                // 13个守卫
+            angerCards: [],            // 激怒牌
+            firstClimber: null,        // 首登者
+            isPlayerTurn: true,        // 是否玩家回合
+            gameRecords: [],           // 游戏记录
+            currentRound: 1,           // 当前轮次
+            diamonds: 1000,            // 钻石数
+            towerImage: null,          // 当前塔图片
+            players: [],               // 所有玩家
+            revealedCards: new Set(),  // 已翻开的守卫牌
+            selectedCardIndex: null    // 选中的手牌索引
+        };
+        
+        this.threeJS = {
+            scene: null,
+            camera: null,
+            renderer: null,
+            tower: null,
+            playerToken: null,
+            otherPlayerTokens: [],
+            controls: null
+        };
+        
+        this.sounds = {};
+        this.init();
+    }
+    
+    /**
+     * 初始化游戏
+     */
+    init() {
+        this.initThreeJS();
+        this.initAudio();
+        this.initPlayers();
+        this.initGuards();
+        this.initAngerCards();
+        this.initPlayerHand();
+        this.initTowerImage();
+        this.createUI();
+        
+        // 隐藏加载画面
+        setTimeout(() => {
+            document.getElementById('loading-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+                this.showNotification('游戏开始', '命运塔已经准备好，开始你的冒险吧！', 'success');
+            }, 500);
+        }, 2000);
+        
+        this.animate();
+    }
+    
+    /**
+     * 初始化Three.js场景
+     */
+    initThreeJS() {
+        const container = document.getElementById('canvas-container');
+        
+        // 场景
+        this.threeJS.scene = new THREE.Scene();
+        this.threeJS.scene.fog = new THREE.FogExp2(0x1a1a2e, 0.015);
+        
+        // 相机
+        this.threeJS.camera = new THREE.PerspectiveCamera(
+            60, window.innerWidth / window.innerHeight, 0.1, 500
+        );
+        this.threeJS.camera.position.set(0, 8, 15);
+        
+        // 渲染器
+        this.threeJS.renderer = new THREE.WebGLRenderer({
+            antialias: true, alpha: true, powerPreference: "high-performance"
+        });
+        this.threeJS.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.threeJS.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.threeJS.renderer.shadowMap.enabled = true;
+        this.threeJS.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(this.threeJS.renderer.domElement);
+        
+        // 控制器
+        this.threeJS.controls = new THREE.OrbitControls(
+            this.threeJS.camera, this.threeJS.renderer.domElement
+        );
+        this.threeJS.controls.enableDamping = true;
+        this.threeJS.controls.dampingFactor = 0.05;
+        this.threeJS.controls.minDistance = 5;
+        this.threeJS.controls.maxDistance = 30;
+        this.threeJS.controls.maxPolarAngle = Math.PI / 2;
+        
+        // 灯光
+        this.setupLighting();
+        
+        // 环境
+        this.createEnvironment();
+        
+        // 创建塔和玩家
+        this.createTower();
+        this.createPlayerToken();
+        
+        // 窗口调整
+        window.addEventListener('resize', () => this.onWindowResize());
+    }
+    
+    /**
+     * 设置灯光
+     */
+    setupLighting() {
+        const ambient = new THREE.AmbientLight(0x404080, 0.6);
+        this.threeJS.scene.add(ambient);
+        
+        const sunLight = new THREE.DirectionalLight(0xffd700, 0.8);
+        sunLight.position.set(10, 20, 10);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 1024;
+        sunLight.shadow.mapSize.height = 1024;
+        this.threeJS.scene.add(sunLight);
+        
+        const topLight = new THREE.PointLight(0xffd700, 1, 15);
+        topLight.position.set(0, 15, 0);
+        this.threeJS.scene.add(topLight);
+    }
+    
+    /**
+     * 创建环境
+     */
+    createEnvironment() {
+        // 天空
+        const skyGeo = new THREE.SphereGeometry(100, 16, 16);
+        const skyMat = new THREE.MeshBasicMaterial({
+            color: 0x1a1a2e, side: THREE.BackSide
+        });
+        this.threeJS.scene.add(new THREE.Mesh(skyGeo, skyMat));
+        
+        // 星星
+        const starGeo = new THREE.BufferGeometry();
+        const starCount = 500;
+        const positions = new Float32Array(starCount * 3);
+        for (let i = 0; i < starCount * 3; i += 3) {
+            positions[i] = (Math.random() - 0.5) * 200;
+            positions[i + 1] = Math.random() * 100;
+            positions[i + 2] = (Math.random() - 0.5) * 200;
+        }
+        starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        this.threeJS.scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({
+            color: 0xffffff, size: 0.5
+        })));
+    }
+    
+    /**
+     * 创建3D塔
+     */
+    createTower() {
+        this.threeJS.tower = new THREE.Group();
+        const colors = [
+            0xff1493, 0xff69b4, 0xffa500, 0xffff00, 0x00ff00,
+            0x00ffff, 0x0000ff, 0x8b00ff, 0xff00ff, 0xff1493,
+            0xff6347, 0xff4500, 0xdc143c
+        ];
+        
+        // 材质缓存
+        const materialCache = {};
+        const getMaterial = (color) => {
+            if (!materialCache[color]) {
+                materialCache[color] = new THREE.MeshPhongMaterial({
+                    color: color, emissive: color, emissiveIntensity: 0.2
+                });
+            }
+            return materialCache[color];
+        };
+        
+        // 创建13层
+        for (let i = 0; i < 13; i++) {
+            const width = 3 - (i * 0.15);
+            const geometry = new THREE.CylinderGeometry(width, width + 0.1, 0.7, 8);
+            const material = getMaterial(colors[i]);
+            const layer = new THREE.Mesh(geometry, material);
+            layer.position.y = i * 0.8;
+            layer.castShadow = true;
+            layer.receiveShadow = true;
+            
+            // 层标签
+            const canvas = document.createElement('canvas');
+            canvas.width = 64; canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#FFD700';
+            ctx.font = 'bold 32px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(CONFIG.LAYER_NAMES[i], 32, 32);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const labelGeo = new THREE.PlaneGeometry(0.6, 0.6);
+            const labelMat = new THREE.MeshBasicMaterial({
+                map: texture, transparent: true
+            });
+            const label = new THREE.Mesh(labelGeo, labelMat);
+            label.position.set(0, 0, width + 0.1);
+            layer.add(label);
+            
+            this.threeJS.tower.add(layer);
+        }
+        
+        // 塔基
+        const base = new THREE.Mesh(
+            new THREE.CylinderGeometry(3.5, 4, 0.5, 8),
+            new THREE.MeshStandardMaterial({ color: 0x4a4a4a })
+        );
+        base.position.y = -0.5;
+        this.threeJS.tower.add(base);
+        
+        // 塔顶
+        const top = new THREE.Mesh(
+            new THREE.ConeGeometry(0.8, 2, 16),
+            new THREE.MeshPhongMaterial({
+                color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 0.5
+            })
+        );
+        top.position.y = 13 * 0.8;
+        this.threeJS.tower.add(top);
+        
+        this.threeJS.scene.add(this.threeJS.tower);
+    }
+    
+    /**
+     * 创建玩家令牌
+     */
+    createPlayerToken() {
+        const group = new THREE.Group();
+        
+        // 底座
+        const base = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.3, 0.35, 0.1, 12),
+            new THREE.MeshPhongMaterial({
+                color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 0.5
+            })
+        );
+        group.add(base);
+        
+        // 身体
+        const body = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.15, 0.15, 0.5, 8),
+            new THREE.MeshPhongMaterial({
+                color: 0x00ff88, emissive: 0x00ff88, emissiveIntensity: 0.3
+            })
+        );
+        body.position.y = 0.35;
+        group.add(body);
+        
+        // 头部
+        const head = new THREE.Mesh(
+            new THREE.SphereGeometry(0.12, 8, 8),
+            new THREE.MeshPhongMaterial({ color: 0x00ff88 })
+        );
+        head.position.y = 0.7;
+        group.add(head);
+        
+        // 光环（首登者时显示）
+        const halo = new THREE.Mesh(
+            new THREE.RingGeometry(0.4, 0.5, 16),
+            new THREE.MeshBasicMaterial({
+                color: 0xff00ff, transparent: true, opacity: 0, side: THREE.DoubleSide
+            })
+        );
+        halo.rotation.x = -Math.PI / 2;
+        halo.position.y = 1;
+        halo.name = 'halo';
+        group.add(halo);
+        
+        this.threeJS.playerToken = group;
+        this.updatePlayerPosition();
+        this.threeJS.scene.add(group);
+        
+        // 创建其他玩家令牌
+        this.createOtherPlayerTokens();
+    }
+    
+    /**
+     * 创建其他玩家令牌
+     */
+    createOtherPlayerTokens() {
+        const positions = [
+            { angle: 90, dist: 3 },
+            { angle: 180, dist: 3 },
+            { angle: 270, dist: 3 }
+        ];
+        
+        positions.forEach((pos, i) => {
+            const group = new THREE.Group();
+            const colors = [0xff4757, 0x3498db, 0xf39c12];
+            
+            const base = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.25, 0.3, 0.1, 8),
+                new THREE.MeshPhongMaterial({ color: colors[i], emissive: colors[i], emissiveIntensity: 0.3 })
+            );
+            group.add(base);
+            
+            const body = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.12, 0.12, 0.4, 8),
+                new THREE.MeshPhongMaterial({ color: colors[i] })
+            );
+            body.position.y = 0.3;
+            group.add(body);
+            
+            const rad = pos.angle * Math.PI / 180;
+            group.position.set(
+                Math.cos(rad) * pos.dist,
+                0,
+                Math.sin(rad) * pos.dist
+            );
+            
+            this.threeJS.otherPlayerTokens.push(group);
+            this.threeJS.scene.add(group);
+        });
+    }
+    
+    /**
+     * 更新玩家位置
+     */
+    updatePlayerPosition() {
+        if (!this.threeJS.playerToken) return;
+        
+        const targetY = this.state.playerLayer * 0.8;
+        this.animateValue(this.threeJS.playerToken.position, 'y', targetY, 1000);
+        
+        // 更新相机
+        this.animateValue(this.threeJS.camera.position, 'y', 8 + this.state.playerLayer * 0.8, 1000);
+    }
+    
+    /**
+     * 动画数值
+     */
+    animateValue(obj, prop, target, duration) {
+        const start = obj[prop];
+        const change = target - start;
+        const startTime = performance.now();
+        
+        const update = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+            obj[prop] = start + change * easeProgress;
+            
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            }
+        };
+        requestAnimationFrame(update);
+    }
+    
+    /**
+     * 初始化音频
+     */
+    initAudio() {
+        // 使用Web Audio API创建简单音效
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    /**
+     * 播放音效
+     */
+    playSound(type) {
+        if (!this.audioContext) return;
+        
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        const sounds = {
+            play: { freq: 440, type: 'sine', duration: 0.1 },
+            match: { freq: 880, type: 'sine', duration: 0.3 },
+            anger: { freq: 220, type: 'sawtooth', duration: 0.5 },
+            climb: { freq: 660, type: 'square', duration: 0.2 },
+            win: { freq: 1320, type: 'sine', duration: 1 }
+        };
+        
+        const sound = sounds[type] || sounds.play;
+        oscillator.frequency.value = sound.freq;
+        oscillator.type = sound.type;
+        
+        gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + sound.duration);
+        
+        oscillator.start(this.audioContext.currentTime);
+        oscillator.stop(this.audioContext.currentTime + sound.duration);
+    }
+    
+    /**
+     * 初始化玩家
+     */
+    initPlayers() {
+        // 创建4个玩家（1个真人 + 3个AI）
+        this.state.players = [
+            { id: 0, name: '你', avatar: '🐼', layer: 0, isFirstClimber: false, isAI: false },
+            { id: 1, name: '玩家2', avatar: '🐺', layer: 0, isFirstClimber: false, isAI: true },
+            { id: 2, name: '玩家3', avatar: '🦁', layer: 0, isFirstClimber: false, isAI: true },
+            { id: 3, name: '玩家4', avatar: '🐯', layer: 0, isFirstClimber: false, isAI: true }
+        ];
+    }
+    
+    /**
+     * 初始化13个守卫
+     */
+    initGuards() {
+        this.state.guards = [];
+        
+        for (let i = 0; i < CONFIG.TOTAL_GUARDS; i++) {
+            const guard = {
+                layer: i,
+                suit: CONFIG.SUITS[i % 4],
+                cards: [],
+                angerCards: []
+            };
+            
+            // 生成13张守卫牌
+            for (let j = 0; j < CONFIG.CARDS_PER_GUARD; j++) {
+                guard.cards.push({
+                    suit: guard.suit,
+                    rank: CONFIG.RANKS[j],
+                    revealed: false
+                });
+            }
+            
+            this.state.guards.push(guard);
+        }
+    }
+    
+    /**
+     * 初始化激怒牌
+     */
+    initAngerCards() {
+        this.state.angerCards = [];
+        
+        // 13层，每层3张激怒牌 = 39张
+        for (let layer = 0; layer < 13; layer++) {
+            for (let i = 0; i < CONFIG.ANGER_CARDS_PER_LAYER; i++) {
+                this.state.angerCards.push({
+                    layer: layer,
+                    suit: CONFIG.SUITS[Math.floor(Math.random() * 4)],
+                    rank: CONFIG.RANKS[Math.floor(Math.random() * 13)]
+                });
+            }
+        }
+    }
+    
+    /**
+     * 初始化玩家手牌（52张）
+     */
+    initPlayerHand() {
+        this.state.playerHand = [];
+        
+        for (let i = 0; i < CONFIG.HAND_SIZE; i++) {
+            this.state.playerHand.push({
+                suit: CONFIG.SUITS[Math.floor(Math.random() * 4)],
+                rank: CONFIG.RANKS[Math.floor(Math.random() * 13)],
+                id: i
+            });
+        }
+    }
+    
+    /**
+     * 初始化塔图片
+     */
+    initTowerImage() {
+        const randomTower = TOWER_IMAGES[Math.floor(Math.random() * TOWER_IMAGES.length)];
+        this.state.towerImage = randomTower;
+        
+        // 更新塔名称显示
+        const towerNames = {
+            'angkor-wat.png': '吴哥窟',
+            'big-ben.png': '大本钟',
+            'burj-khalifa.png': '哈利法塔',
+            'cn-tower.png': '东方明珠',
+            'eiffel-tower.png': '埃菲尔铁塔',
+            'empire-state.png': '帝国大厦'
+        };
+        
+        const towerName = towerNames[randomTower] || '命运塔';
+        document.getElementById('towerName').textContent = '🏰 ' + towerName;
+    }
+    
+    /**
+     * 创建UI
+     */
+    createUI() {
+        this.createLayerIndicators();
+        this.createAngerCardsUI();
+        this.createGuardCardsUI();
+        this.createPlayerHandUI();
+        this.createPlayerAvatarsUI();
+        this.updateUI();
+    }
+    
+    /**
+     * 创建层指示器
+     */
+    createLayerIndicators() {
+        const container = document.getElementById('layerIndicators');
+        container.innerHTML = '';
+        
+        // 从A层到2层显示
+        for (let i = 12; i >= 0; i--) {
+            const indicator = document.createElement('div');
+            indicator.className = 'layer-indicator';
+            indicator.id = `layer-${i}`;
+            indicator.innerHTML = `
+                <div class="layer-dot"></div>
+                <span>${CONFIG.LAYER_NAMES[i]}层</span>
+            `;
+            container.appendChild(indicator);
+        }
+    }
+    
+    /**
+     * 创建激怒牌UI
+     */
+    createAngerCardsUI() {
+        const container = document.getElementById('angerCards');
+        container.innerHTML = '';
+        
+        // 显示当前层的激怒牌
+        const currentLayerAnger = this.state.angerCards.filter(
+            card => card.layer === this.state.currentLayer
+        );
+        
+        currentLayerAnger.forEach((card, i) => {
+            const el = document.createElement('div');
+            el.className = 'anger-card';
+            el.id = `anger-${i}`;
+            el.innerHTML = `
+                <span style="font-size: 14px;">${card.suit}</span>
+                <span style="font-weight: bold;">${card.rank}</span>
+            `;
+            container.appendChild(el);
+        });
+    }
+    
+    /**
+     * 创建守卫牌UI
+     */
+    createGuardCardsUI() {
+        const container = document.getElementById('guardCards');
+        container.innerHTML = '';
+        
+        const guard = this.state.guards[this.state.currentGuard];
+        if (!guard) return;
+        
+        // 显示4张守卫牌（隐藏状态）
+        for (let i = 0; i < 4; i++) {
+            const card = guard.cards[i];
+            const el = document.createElement('div');
+            el.className = 'guard-card hidden';
+            el.id = `guard-card-${i}`;
+            el.onclick = () => this.revealGuardCard(i);
+            
+            if (card && card.revealed) {
+                el.className = 'guard-card revealed';
+                const color = (card.suit === '♥' || card.suit === '♦') ? 'red' : 'black';
+                el.innerHTML = `
+                    <span class="suit" style="color: ${color === 'red' ? '#e74c3c' : '#2c3e50'}">${card.suit}</span>
+                    <span class="rank" style="color: ${color === 'red' ? '#e74c3c' : '#2c3e50'}">${card.rank}</span>
+                `;
+            }
+            
+            container.appendChild(el);
+        }
+        
+        // 更新守卫信息
+        document.getElementById('guardInfo').textContent = 
+            `👹 第${this.state.currentLayer + 1}层守卫: ${guard.suit}${CONFIG.SUIT_NAMES[guard.suit]}`;
+    }
+    
+    /**
+     * 创建手牌UI
+     */
+    createPlayerHandUI() {
+        const container = document.getElementById('handCards');
+        container.innerHTML = '';
+        
+        this.state.playerHand.forEach((card, index) => {
+            const el = document.createElement('div');
+            el.className = `card ${(card.suit === '♥' || card.suit === '♦') ? 'red' : 'black'}`;
+            el.id = `hand-card-${index}`;
+            el.innerHTML = `
+                <span class="suit">${card.suit}</span>
+                <span class="rank">${card.rank}</span>
+            `;
+            el.onclick = () => this.selectCard(index);
+            container.appendChild(el);
+        });
+        
+        document.getElementById('handCount').textContent = this.state.playerHand.length;
+    }
+    
+    /**
+     * 创建玩家头像UI
+     */
+    createPlayerAvatarsUI() {
+        const container = document.getElementById('playerAvatars');
+        container.innerHTML = '';
+        
+        this.state.players.forEach((player, i) => {
+            const el = document.createElement('div');
+            el.className = `player-avatar ${i === 0 ? 'active' : ''} ${player.isFirstClimber ? 'first-climber' : ''}`;
+            el.id = `player-${i}`;
+            el.innerHTML = `
+                <div class="avatar-img">${player.avatar}</div>
+                <div>
+                    <div style="font-weight: bold;">${player.name}</div>
+                    <div style="font-size: 10px; opacity: 0.8;">${CONFIG.LAYER_NAMES[player.layer] || '2'}层 ${player.isFirstClimber ? '👑' : ''}</div>
+                </div>
+            `;
+            container.appendChild(el);
+        });
+    }
+    
+    /**
+     * 选择手牌
+     */
+    selectCard(index) {
+        if (!this.state.isPlayerTurn) {
+            this.showNotification('等待中', '请等待你的回合', 'warning');
+            return;
+        }
+        
+        // 移除之前的选中
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+        
+        // 选中新牌
+        const cardEl = document.getElementById(`hand-card-${index}`);
+        if (cardEl) {
+            cardEl.classList.add('selected');
+            this.state.selectedCardIndex = index;
+        }
+    }
+    
+    /**
+     * 出牌
+     */
+    playCard() {
+        if (!this.state.isPlayerTurn) {
+            this.showNotification('等待中', '请等待你的回合', 'warning');
+            return;
+        }
+        
+        if (this.state.selectedCardIndex === null) {
+            this.showNotification('提示', '请先选择一张卡牌！', 'warning');
+            return;
+        }
+        
+        const card = this.state.playerHand[this.state.selectedCardIndex];
+        if (!card) return;
+        
+        this.playSound('play');
+        
+        // 播放出牌动画
+        const cardEl = document.getElementById(`hand-card-${this.state.selectedCardIndex}`);
+        if (cardEl) {
+            cardEl.classList.add('playing');
+        }
+        
+        // 延迟执行匹配逻辑
+        setTimeout(() => {
+            this.processCardPlay(card);
+        }, 800);
+    }
+    
+    /**
+     * 处理卡牌打出
+     */
+    processCardPlay(card) {
+        const currentGuard = this.state.guards[this.state.currentGuard];
+        
+        // 检查匹配
+        let matchType = 'none';
+        const suitMatch = card.suit === currentGuard.suit;
+        const rankMatch = card.rank === CONFIG.RANKS[this.state.currentLayer];
+        
+        if (suitMatch && rankMatch) {
+            matchType = 'perfect'; // 点数+花色都匹配
+        } else if (suitMatch || rankMatch) {
+            matchType = 'partial'; // 点数或花色匹配
+        }
+        
+        // 检查激怒牌
+        const angerMatch = this.checkAngerCardMatch(card);
+        
+        // 执行结果
+        this.executeMatchResult(matchType, angerMatch);
+        
+        // 从手牌中移除
+        this.state.playerHand.splice(this.state.selectedCardIndex, 1);
+        this.state.selectedCardIndex = null;
+        
+        // 添加游戏记录
+        this.addGameRecord(`打出 ${card.suit}${card.rank} - ${this.getMatchText(matchType)}`);
+        
+        // 更新UI
+        this.createPlayerHandUI();
+        this.updateUI();
+        
+        // 检查手牌是否用完
+        if (this.state.playerHand.length === 0) {
+            setTimeout(() => this.showGameOver('手牌已用完', '你的手牌已经全部打完了！'), 500);
+            return;
+        }
+        
+        // 切换到AI回合
+        this.state.isPlayerTurn = false;
+        this.updateTurnIndicator();
+        
+        // AI回合
+        setTimeout(() => this.aiTurn(), 1500);
+    }
+    
+    /**
+     * 检查激怒牌匹配
+     */
+    checkAngerCardMatch(card) {
+        const currentLayerAnger = this.state.angerCards.filter(
+            c => c.layer === this.state.currentLayer
+        );
+        
+        return currentLayerAnger.some(anger => 
+            anger.suit === card.suit && anger.rank === card.rank
+        );
+    }
+    
+    /**
+     * 执行匹配结果
+     */
+    executeMatchResult(matchType, angerMatch) {
+        const matchTexts = {
+            perfect: { text: '完美匹配! +2层', class: 'perfect', layers: 2 },
+            partial: { text: '部分匹配! +1层', class: 'partial', layers: 1 },
+            none: { text: '未匹配', class: 'fail', layers: 0 }
+        };
+        
+        const result = matchTexts[matchType];
+        
+        // 显示匹配结果
+        this.showMatchResult(result.text, result.class);
+        
+        if (result.layers > 0) {
+            this.playSound('match');
+            
+            // 检查激怒牌
+            if (angerMatch) {
+                this.triggerAngerCard();
+                return;
+            }
+            
+            // 爬升
+            setTimeout(() => {
+                this.climbLayers(result.layers);
+            }, 1000);
+        } else {
+            this.playSound('anger');
+            // 检查激怒牌（即使不匹配也要检查）
+            if (angerMatch) {
+                this.triggerAngerCard();
+            }
+        }
+    }
+    
+    /**
+     * 获取匹配文本
+     */
+    getMatchText(matchType) {
+        const texts = {
+            perfect: '完美匹配',
+            partial: '部分匹配',
+            none: '未匹配'
+        };
+        return texts[matchType] || '未知';
+    }
+    
+    /**
+     * 显示匹配结果
+     */
+    showMatchResult(text, className) {
+        const el = document.getElementById('matchResult');
+        el.textContent = text;
+        el.className = `match-result ${className} show`;
+        
+        setTimeout(() => {
+            el.classList.remove('show');
+        }, 1500);
+    }
+    
+    /**
+     * 触发激怒牌
+     */
+    triggerAngerCard() {
+        this.playSound('anger');
+        
+        // 闪烁激怒牌
+        document.querySelectorAll('.anger-card').forEach(card => {
+            card.classList.add('triggered');
+        });
+        
+        this.showNotification('⚠️ 激怒牌触发!', '匹配到激怒牌，回退1层！', 'error');
+        this.addGameRecord('⚠️ 触发激怒牌，回退1层');
+        
+        setTimeout(() => {
+            document.querySelectorAll('.anger-card').forEach(card => {
+                card.classList.remove('triggered');
+            });
+            
+            // 回退1层
+            if (this.state.playerLayer > 0) {
+                this.state.playerLayer--;
+                this.updatePlayerPosition();
+                this.updateUI();
+            }
+        }, 1500);
+    }
+    
+    /**
+     * 爬升层数
+     */
+    climbLayers(layers) {
+        this.playSound('climb');
+        
+        const oldLayer = this.state.playerLayer;
+        this.state.playerLayer = Math.min(this.state.playerLayer + layers, 12);
+        
+        // 检查首登者
+        if (this.state.playerLayer === 12 && !this.state.firstClimber) {
+            this.becomeFirstClimber();
+        }
+        
+        // 更新当前层和守卫
+        this.state.currentLayer = this.state.playerLayer;
+        this.state.currentGuard = this.state.playerLayer;
+        
+        // 更新3D位置
+        this.updatePlayerPosition();
+        
+        // 显示晋级提示
+        if (this.state.playerLayer > oldLayer) {
+            this.showLevelUp();
+        }
+        
+        // 更新UI
+        this.createAngerCardsUI();
+        this.createGuardCardsUI();
+        this.updateUI();
+        
+        // 检查胜利
+        if (this.state.playerLayer === 12) {
+            setTimeout(() => this.showVictory(), 1000);
+        }
+    }
+    
+    /**
+     * 显示晋级提示
+     */
+    showLevelUp() {
+        const el = document.getElementById('levelUpIndicator');
+        el.classList.add('show');
+        
+        // 添加粒子效果
+        this.createClimbEffect();
+        
+        setTimeout(() => {
+            el.classList.remove('show');
+        }, 2000);
+    }
+    
+    /**
+     * 创建爬升粒子效果
+     */
+    createClimbEffect() {
+        const particleCount = 30;
+        const particles = new THREE.Group();
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = new THREE.Mesh(
+                new THREE.SphereGeometry(0.1, 6, 6),
+                new THREE.MeshBasicMaterial({
+                    color: new THREE.Color().setHSL(Math.random(), 1, 0.5)
+                })
+            );
+            
+            const pos = this.threeJS.playerToken.position.clone();
+            particle.position.set(
+                pos.x + (Math.random() - 0.5) * 2,
+                pos.y + (Math.random() - 0.5) * 1,
+                pos.z + (Math.random() - 0.5) * 2
+            );
+            
+            particle.userData = {
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.2,
+                    Math.random() * 0.5,
+                    (Math.random() - 0.5) * 0.2
+                )
+            };
+            
+            particles.add(particle);
+        }
+        
+        this.threeJS.scene.add(particles);
+        
+        const animateParticles = () => {
+            let alive = false;
+            particles.children.forEach(p => {
+                if (p.scale.x > 0.01) {
+                    p.position.add(p.userData.velocity);
+                    p.userData.velocity.y -= 0.01;
+                    p.scale.multiplyScalar(0.98);
+                    alive = true;
+                }
+            });
+            
+            if (alive) {
+                requestAnimationFrame(animateParticles);
+            } else {
+                this.threeJS.scene.remove(particles);
+            }
+        };
+        
+        animateParticles();
+    }
+    
+    /**
+     * 成为首登者
+     */
+    becomeFirstClimber() {
+        this.state.firstClimber = 0; // 玩家ID
+        this.state.players[0].isFirstClimber = true;
+        
+        // 显示首登者徽章
+        const badge = document.getElementById('firstClimberBadge');
+        badge.classList.add('show');
+        
+        // 更新玩家光环
+        const halo = this.threeJS.playerToken.getObjectByName('halo');
+        if (halo) {
+            halo.material.opacity = 0.8;
+        }
+        
+        this.showNotification('👑 首位登顶!', '你已成为首登者，变身为最高层守卫！', 'success');
+        this.addGameRecord('👑 成为首位登顶者，变身为守卫！');
+        
+        // 更新UI
+        this.createPlayerAvatarsUI();
+        
+        setTimeout(() => {
+            badge.classList.remove('show');
+        }, 3000);
+    }
+    
+    /**
+     * AI回合
+     */
+    aiTurn() {
+        // 简单AI逻辑
+        this.state.players.forEach((player, i) => {
+            if (i === 0 || !player.isAI) return;
+            
+            // AI随机爬升0-2层
+            const climb = Math.floor(Math.random() * 3);
+            if (climb > 0 && player.layer < 12) {
+                player.layer = Math.min(player.layer + climb, 12);
+                
+                // 检查AI首登者
+                if (player.layer === 12 && !this.state.firstClimber) {
+                    this.state.firstClimber = i;
+                    player.isFirstClimber = true;
+                    this.addGameRecord(`${player.name} 成为首位登顶者！`);
+                }
+                
+                // 更新AI令牌位置
+                if (this.threeJS.otherPlayerTokens[i - 1]) {
+                    const targetY = player.layer * 0.8;
+                    this.animateValue(
+                        this.threeJS.otherPlayerTokens[i - 1].position,
+                        'y', targetY, 1000
+                    );
+                }
+            }
+        });
+        
+        this.createPlayerAvatarsUI();
+        
+        // 回到玩家回合
+        setTimeout(() => {
+            this.state.isPlayerTurn = true;
+            this.updateTurnIndicator();
+        }, 1000);
+    }
+    
+    /**
+     * 更新回合指示器
+     */
+    updateTurnIndicator() {
+        const indicator = document.getElementById('turnIndicator');
+        if (this.state.isPlayerTurn) {
+            indicator.textContent = '你的回合';
+            indicator.classList.remove('opponent');
+        } else {
+            indicator.textContent = '对手回合';
+            indicator.classList.add('opponent');
+        }
+    }
+    
+    /**
+     * 翻开守卫牌
+     */
+    revealGuardCard(index) {
+        const guard = this.state.guards[this.state.currentGuard];
+        if (!guard || !guard.cards[index]) return;
+        
+        const card = guard.cards[index];
+        card.revealed = true;
+        
+        // 更新UI
+        const el = document.getElementById(`guard-card-${index}`);
+        if (el) {
+            el.className = 'guard-card revealed';
+            const color = (card.suit === '♥' || card.suit === '♦') ? 'red' : 'black';
+            el.innerHTML = `
+                <span class="suit" style="color: ${color === 'red' ? '#e74c3c' : '#2c3e50'}">${card.suit}</span>
+                <span class="rank" style="color: ${color === 'red' ? '#e74c3c' : '#2c3e50'}">${card.rank}</span>
+            `;
+        }
+        
+        this.playSound('play');
+    }
+    
+    /**
+     * 添加游戏记录
+     */
+    addGameRecord(action) {
+        const record = {
+            round: this.state.currentRound,
+            action: action,
+            layer: CONFIG.LAYER_NAMES[this.state.playerLayer] || '2',
+            timestamp: new Date().toLocaleTimeString('zh-CN', { hour12: false })
+        };
+        
+        this.state.gameRecords.unshift(record);
+        if (this.state.gameRecords.length > 20) {
+            this.state.gameRecords.pop();
+        }
+        
+        // 更新显示
+        const container = document.getElementById('gameRecords');
+        container.innerHTML = this.state.gameRecords.map(r => `
+            <div class="record-item">
+                <div class="record-round">第${r.round}轮 ${r.layer}层 [${r.timestamp}]</div>
+                <div class="record-action">${r.action}</div>
+            </div>
+        `).join('');
+        
+        this.state.currentRound++;
+    }
+    
+    /**
+     * 更新UI
+     */
+    updateUI() {
+        // 更新层指示器
+        for (let i = 0; i < 13; i++) {
+            const el = document.getElementById(`layer-${i}`);
+            if (!el) continue;
+            
+            el.classList.remove('active', 'current', 'first-climber');
+            
+            if (i < this.state.playerLayer) {
+                el.classList.add('active');
+            } else if (i === this.state.playerLayer) {
+                el.classList.add('current');
+            }
+            
+            if (this.state.firstClimber !== null && i === 12) {
+                el.classList.add('first-climber');
+            }
+        }
+        
+        // 更新当前层显示
+        document.getElementById('currentLayer').textContent = 
+            CONFIG.LAYER_NAMES[this.state.playerLayer] + '层';
+        
+        // 更新按钮状态
+        document.getElementById('playBtn').disabled = !this.state.isPlayerTurn;
+    }
+    
+    /**
+     * 显示通知
+     */
+    showNotification(title, text, type = 'success') {
+        const notif = document.getElementById('notification');
+        const titleEl = document.getElementById('notifTitle');
+        const textEl = document.getElementById('notifText');
+        
+        titleEl.textContent = title;
+        textEl.textContent = text;
+        
+        notif.className = `notification ${type} show`;
+        
+        setTimeout(() => {
+            notif.classList.remove('show');
+        }, 2500);
+    }
+    
+    /**
+     * 显示游戏结束
+     */
+    showGameOver(title, text) {
+        document.getElementById('gameOverTitle').textContent = title;
+        document.getElementById('gameOverText').textContent = text;
+        document.getElementById('gameOverModal').classList.add('show');
+    }
+    
+    /**
+     * 显示胜利
+     */
+    showVictory() {
+        this.playSound('win');
+        this.showGameOver('🏆 恭喜通关!', '你已经登顶命运塔，获得了最终胜利！');
+    }
+    
+    /**
+     * 重新开始
+     */
+    restart() {
+        location.reload();
+    }
+    
+    /**
+     * 退出游戏
+     */
+    exit() {
+        if (confirm('确定要退出游戏吗？')) {
+            window.close();
+            // 如果无法关闭，返回主页
+            window.location.href = 'index.html';
+        }
+    }
+    
+    /**
+     * 窗口调整
+     */
+    onWindowResize() {
+        this.threeJS.camera.aspect = window.innerWidth / window.innerHeight;
+        this.threeJS.camera.updateProjectionMatrix();
+        this.threeJS.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    
+    /**
+     * 动画循环
+     */
+    animate() {
+        requestAnimationFrame(() => this.animate());
+        
+        const time = performance.now() * 0.001;
+        
+        // 塔旋转
+        if (this.threeJS.tower) {
+            this.threeJS.tower.rotation.y = Math.sin(time * 0.1) * 0.1;
+        }
+        
+        // 玩家动画
+        if (this.threeJS.playerToken) {
+            this.threeJS.playerToken.position.y += Math.sin(time * 3) * 0.002;
+            this.threeJS.playerToken.rotation.y += 0.01;
+        }
+        
+        // 其他玩家动画
+        this.threeJS.otherPlayerTokens.forEach((token, i) => {
+            token.position.y += Math.sin(time * 3 + i) * 0.002;
+            token.rotation.y += 0.01;
+        });
+        
+        this.threeJS.controls.update();
+        this.threeJS.renderer.render(this.threeJS.scene, this.threeJS.camera);
+    }
+}
+
+// 启动游戏
+let game;
+window.onload = () => {
+    game = new TowerOfFateGame();
+};
+</script>
+</body>
+</html>
