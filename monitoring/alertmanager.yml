@@ -1,0 +1,95 @@
+# Alertmanager配置
+# 用于告警通知路由
+
+global:
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'alerts@tower-of-fate.com'
+  smtp_auth_username: 'alerts@tower-of-fate.com'
+  smtp_auth_password: 'your-email-password'
+
+# 告警模板
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# 路由配置
+route:
+  receiver: 'default'
+  group_by: ['alertname', 'severity']
+  group_wait: 10s
+  group_interval: 5m
+  repeat_interval: 4h
+  
+  routes:
+    # 严重告警立即通知
+    - match:
+        severity: critical
+      receiver: 'critical-team'
+      group_wait: 0s
+      repeat_interval: 30m
+      continue: true
+    
+    # 支付相关告警
+    - match:
+        team: payment
+      receiver: 'payment-team'
+      group_wait: 30s
+      continue: true
+    
+    # 数据库告警
+    - match:
+        team: dba
+      receiver: 'dba-team'
+      group_wait: 1m
+
+# 接收器配置
+receivers:
+  - name: 'default'
+    email_configs:
+      - to: 'ops@tower-of-fate.com'
+        headers:
+          Subject: '[TowerOfFate] {{ .GroupLabels.alertname }}'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#alerts'
+        title: '{{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+
+  - name: 'critical-team'
+    pagerduty_configs:
+      - service_key: 'your-pagerduty-key'
+        description: '{{ .GroupLabels.alertname }}'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#critical-alerts'
+        title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Summary:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Instance:* {{ .Labels.instance }}
+          {{ end }}
+    webhook_configs:
+      - url: 'https://api.tower-of-fate.com/webhooks/alerts'
+        send_resolved: true
+
+  - name: 'payment-team'
+    email_configs:
+      - to: 'payments@tower-of-fate.com'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#payment-alerts'
+
+  - name: 'dba-team'
+    email_configs:
+      - to: 'dba@tower-of-fate.com'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#db-alerts'
+
+# 静默规则 (维护窗口)
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']

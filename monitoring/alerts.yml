@@ -1,0 +1,131 @@
+# 告警规则配置文件
+# 复制到 /etc/prometheus/alerts.yml
+
+groups:
+  - name: toweroffate-critical
+    interval: 30s
+    rules:
+      - alert: ServiceDown
+        expr: up{job="toweroffate-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: sre
+        annotations:
+          summary: "服务不可用 - {{ $labels.instance }}"
+          description: "命运塔应用服务已宕机超过1分钟"
+          runbook_url: "https://wiki.tower-of-fate.com/runbooks/service-down"
+
+      - alert: DatabaseConnectionFailed
+        expr: toweroffate_mongodb_connected == 0
+        for: 30s
+        labels:
+          severity: critical
+          team: dba
+        annotations:
+          summary: "数据库连接失败"
+          description: "MongoDB连接已断开，数据服务不可用"
+
+      - alert: HighErrorRate
+        expr: rate(toweroffate_errors_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: critical
+          team: dev
+        annotations:
+          summary: "错误率过高"
+          description: "过去5分钟错误率: {{ $value }} 次/秒"
+
+      - alert: PaymentFailureSpike
+        expr: |
+          (
+            rate(toweroffate_payment_count_total{status="failed"}[10m])
+            /
+            rate(toweroffate_payment_count_total[10m])
+          ) > 0.2
+        for: 1m
+        labels:
+          severity: critical
+          team: payment
+        annotations:
+          summary: "支付失败率激增"
+          description: "支付失败率: {{ $value | humanizePercentage }}"
+
+  - name: toweroffate-warning
+    interval: 1m
+    rules:
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95, 
+            rate(toweroffate_api_latency_seconds_bucket[5m])
+          ) > 1
+        for: 3m
+        labels:
+          severity: warning
+          team: dev
+        annotations:
+          summary: "API延迟过高"
+          description: "P95延迟: {{ $value }}s"
+
+      - alert: LowActiveGames
+        expr: sum(toweroffate_active_games) < 10
+        for: 5m
+        labels:
+          severity: warning
+          team: ops
+        annotations:
+          summary: "活跃游戏数偏低"
+          description: "当前活跃游戏: {{ $value }} 场"
+
+      - alert: MemoryUsageHigh
+        expr: |
+          (
+            toweroffate_memory_usage_bytes{type="heapUsed"}
+            /
+            toweroffate_memory_usage_bytes{type="heapTotal"}
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          team: sre
+        annotations:
+          summary: "内存使用率过高"
+          description: "堆内存使用率: {{ $value | humanizePercentage }}"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1
+        for: 5m
+        labels:
+          severity: warning
+          team: sre
+        annotations:
+          summary: "磁盘空间不足"
+          description: "{{ $labels.device }} 可用空间: {{ $value | humanizePercentage }}"
+
+  - name: toweroffate-info
+    interval: 5m
+    rules:
+      - alert: LowOnlinePlayers
+        expr: toweroffate_online_players < 50
+        for: 30m
+        labels:
+          severity: info
+          team: product
+        annotations:
+          summary: "在线玩家数偏低"
+          description: "当前在线: {{ $value }} 人"
+
+      - alert: DailyActiveUsersDrop
+        expr: |
+          (
+            rate(toweroffate_user_registrations_total[1d])
+            /
+            rate(toweroffate_user_registrations_total[1d] offset 1d)
+          ) < 0.5
+        for: 1h
+        labels:
+          severity: info
+          team: product
+        annotations:
+          summary: "日活用户下降"
+          description: "日活较昨日下降超过50%"
